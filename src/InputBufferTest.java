@@ -106,7 +106,7 @@ public class InputBufferTest extends TestCase {
         buffer.nextBlock();
 
         // At the end of the file now
-        buffer.next(8193);
+        assertTrue(buffer.endOfFile());
 
     }
 

@@ -63,6 +63,7 @@ public class InputBuffer {
      * 
      * @param dest
      *            byte[] to save dest.length bytes to
+     * @apiNote parent
      */
     public void next(byte[] dest) {
         buffer.get(dest);
@@ -74,6 +75,7 @@ public class InputBuffer {
      * 
      * @param increment
      *            bytes to increment buffer
+     * @apiNote parent
      */
     public boolean next(int increment) {
         try {
@@ -93,6 +95,7 @@ public class InputBuffer {
      * @param length
      *            # of bytes to be read buffer
      * @return read bytes as double
+     * @apiNote parent
      */
     public double nextDouble(int length) {
         byte[] temp = new byte[length];
@@ -109,6 +112,7 @@ public class InputBuffer {
      * @param length
      *            # of bytes to be read buffer
      * @return read bytes as long
+     * @apiNote parent
      */
     public long nextLong(int length) {
         byte[] temp = new byte[length];
@@ -176,6 +180,7 @@ public class InputBuffer {
      * Returns shallow copy of data from the current buffer
      * 
      * @return shallow copy of data from current buffer
+     * @apiNote parent
      */
     public byte[] getData() {
         return data;
@@ -197,6 +202,8 @@ public class InputBuffer {
 
     /**
      * Rewinds the buffer with ByteBuffer.rewind()
+     * 
+     * @apiNote parent
      */
     public void rewind() {
         buffer.rewind();
@@ -207,6 +214,7 @@ public class InputBuffer {
      * Resets the buffer with ByteBuffer.reset()
      * 
      * @precondition mark exists
+     * @apiNote parent
      */
     public void reset() {
         buffer.reset();
@@ -215,6 +223,8 @@ public class InputBuffer {
 
     /**
      * Marks the buffer with ByteBuffer.mark()
+     * 
+     * @apiNote parent
      */
     public void mark() {
         buffer.mark();
@@ -239,6 +249,7 @@ public class InputBuffer {
      * @param array
      *            Array to convert to long
      * @return array as long
+     * @apiNote parent
      */
     private long convertToLong(byte[] array) {
         ByteBuffer buffer = ByteBuffer.wrap(array);
@@ -252,6 +263,7 @@ public class InputBuffer {
      * @param array
      *            Array to convert to double
      * @return array as double
+     * @apiNote parent
      */
     private double convertToDouble(byte[] array) {
         ByteBuffer buffer = ByteBuffer.wrap(array);

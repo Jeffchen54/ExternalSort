@@ -326,43 +326,71 @@ public class InputBufferTest extends TestCase {
         assertEquals(begin, buffer.nextLong(8));
         assertFalse(begin == reset);
     }
-    
+
+
     /**
      * test endOfFile()
-     * @throws IOException 
+     * 
+     * @throws IOException
      */
     public void testEndOfFile() throws IOException {
         // Beginning
         assertFalse(buffer.endOfFile());
-        
+
         // Middle
         buffer.seek(70000);
         assertFalse(buffer.endOfFile());
-        
+
         // End
         buffer.seek(122880);
         assertTrue(buffer.endOfFile());
-        
+
         buffer.seek(122879);
         assertFalse(buffer.endOfFile());
-        
+
         // Resetting
         buffer.seek(0);
-        
+
         // Negative "seek logic should prevent this"
         buffer.seek(-121);
         assertFalse(buffer.endOfFile());
-        
-        // Past "Only occurs for specific seek positions which cannot occur with 
+
+        // Past "Only occurs for specific seek positions which cannot occur with
         // 8192 byte block size requirement for project"
         buffer.seek(130000);
         assertTrue(buffer.endOfFile());
-        
+
         // Resetting
         buffer.seek(0);
-        
+
         // Explicitly going way beyond EOF "seek prevents this"
         buffer.seek(8956565);
         assertFalse(buffer.endOfFile());
+    }
+
+
+    /**
+     * Test close()
+     */
+    public void testClose() {
+        IOException exception = null;
+
+        // open file close
+        try {
+            buffer.close();
+        }
+        catch (IOException e) {
+            exception = e;
+        }
+        assertNull(exception);
+
+        // closed file close (works since you can close a closed file)
+        try {
+            buffer.close();
+        }
+        catch (IOException e) {
+            exception = e;
+        }
+        assertNull(exception);
     }
 }

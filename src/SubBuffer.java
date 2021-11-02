@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 // On my honor:
@@ -102,8 +103,9 @@ public class SubBuffer implements Comparable<SubBuffer> {
      * Returns shallow copy of data in buffer. Afterwards, sets flushed on.
      * 
      * @return shallow copy of data, null if flushed
+     * @throws IOException
      */
-    public byte[] flush() {
+    public byte[] flush() throws IOException {
         if (this.isFlushed()) {
             return null;
         }

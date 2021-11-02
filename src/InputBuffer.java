@@ -188,13 +188,14 @@ public class InputBuffer {
 
 
     /**
-     * Changes this.file to file
+     * Closes this.file. Changes this.file to file
      * 
      * @param file
      *            File to change to
      * @throws IOException
      */
     public void changeFile(RandomAccessFile file) throws IOException {
+        this.file.close();
         this.file = file;
         this.seek(0);
     }
@@ -239,6 +240,16 @@ public class InputBuffer {
      */
     public boolean endOfFile() throws IOException {
         return file.getFilePointer() >= file.length();
+    }
+
+
+    /**
+     * Closes the file
+     * 
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        file.close();
     }
 
 

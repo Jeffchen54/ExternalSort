@@ -152,8 +152,9 @@ public class SubBufferTest extends TestCase {
 
     /**
      * Tests flush() and isFlushed()
+     * @throws IOException 
      */
-    public void testFlushed() {
+    public void testFlushed() throws IOException {
         // Checking empty flush
         assertTrue(buffer.isFlushed());
         assertNull(buffer.flush());

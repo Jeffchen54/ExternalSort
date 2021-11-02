@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
  * @author chenj (chenjeff4840)
  * @version 11.1.2021
  */
-public class SubBuffer implements Comparable<byte[]> {
+public class SubBuffer implements Comparable<SubBuffer> {
 
     // Fields -----------------------------------------------------------
     private byte[] data;
@@ -45,9 +45,31 @@ public class SubBuffer implements Comparable<byte[]> {
      * 
      * @param src
      *            Array to be copied
+     * @precondition src != null
      */
     public SubBuffer(byte[] src) {
+        data = new byte[8192];
 
+        if (this.isBlock(src)) {
+            flushed = false;
+        }
+        else {
+            flushed = true;
+        }
+
+        this.setData(src);
+        buffer = ByteBuffer.wrap(data);
+    }
+
+
+    /**
+     * Initializes fields with no data, flushed set to true
+     * 
+     */
+    public SubBuffer() {
+        data = new byte[8192];
+        flushed = true;
+        buffer = ByteBuffer.wrap(data);
     }
 
     // Functions -----------------------------------------------------------
@@ -59,7 +81,20 @@ public class SubBuffer implements Comparable<byte[]> {
      * @return key, -1 if flushed
      */
     public double getKey() {
-        return 0;
+        // Conditional
+        if (isFlushed()) {
+            return -1;
+        }
+
+        // Creating temp key buffer and incrementing to key pos in buffer
+        byte[] temp = new byte[8];
+        buffer.position(8);
+        buffer.get(temp);
+
+        // Grabbing key as double and reset to beginning of buffer
+        double toReturn = this.convertToDouble(temp);
+        buffer.rewind();
+        return toReturn;
     }
 
 
@@ -69,7 +104,12 @@ public class SubBuffer implements Comparable<byte[]> {
      * @return shallow copy of data, null if flushed
      */
     public byte[] flush() {
-        return null;
+        if (this.isFlushed()) {
+            return null;
+        }
+
+        flushed = true;
+        return data;
     }
 
 
@@ -79,9 +119,13 @@ public class SubBuffer implements Comparable<byte[]> {
      * 
      * @param src
      *            data to copy to buffer
+     * @precondition src != null
      */
     public void setData(byte[] src) {
-
+        if (this.isBlock(src)) {
+            System.arraycopy(src, 0, data, 0, 8192);
+            flushed = false;
+        }
     }
 
 
@@ -91,7 +135,10 @@ public class SubBuffer implements Comparable<byte[]> {
      * @return shallow copy of buffer's data, null if flushed
      */
     public byte[] getData() {
-        return null;
+        if (this.isFlushed()) {
+            return null;
+        }
+        return data;
     }
 
 
@@ -101,27 +148,70 @@ public class SubBuffer implements Comparable<byte[]> {
      * @return true if flushed, false otherwised
      */
     public boolean isFlushed() {
-        return false;
+        return flushed == true;
     }
 
 
     /**
-     * {@inheritDoc}
+     * Compares this and obj's key. If:
+     * 
+     * this.key == obj.key -> returns 0
+     * this.key < obj.key || obj == null -> returns -1
+     * this.key > obj.key -> return 1
+     * 
+     * 2 Flushed buffers will return 0 since default key value is -1
+     * 
+     * @param obj
+     *            SubBuffer to compare to this
+     * @return 1 if equal, -1 if less, 1 if greater.
      */
     @Override
-    public int compareTo(byte[] o) {
-        // TODO Auto-generated method stub
-        return 0;
+    public int compareTo(SubBuffer obj) {
+        if (obj == null) {
+            return -1;
+        }
+
+        if (obj == this) {
+            return 0;
+        }
+
+        if (this.getKey() == obj.getKey()) {
+            return 0;
+        }
+
+        if (this.getKey() < obj.getKey()) {
+            return -1;
+        }
+
+        return 1;
+
     }
 
     // Helpers -----------------------------------------------------------
 
 
     /**
-     * Checks if the block is a block of 8192 byte size.
+     * Checks if the block is a valid block.
+     * 
+     * @param block
+     *            Block to check for validity.
+     * @return true if block is a valid block, false otherwise
      */
     private boolean isBlock(byte[] block) {
-        return false;
+        return block.length == 8192;
+    }
+
+
+    /**
+     * Converts array to double
+     * 
+     * @param array
+     *            Array to convert to double
+     * @return array as double
+     */
+    private double convertToDouble(byte[] array) {
+        ByteBuffer buffer = ByteBuffer.wrap(array);
+        return buffer.getDouble();
     }
 
 }

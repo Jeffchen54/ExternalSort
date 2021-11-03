@@ -67,7 +67,7 @@ public class OutputBuffer extends SubBuffer {
             }
             catch (IOException e) {
                 System.out.println(
-                    "ERROR: Output file is not writable\n\nStack Trace:");
+                    "ERROR: Output file is not writable\n\nStack Trace:\n");
                 e.printStackTrace();
                 throw e;
             }

@@ -104,6 +104,7 @@ public class SubBuffer implements Comparable<SubBuffer> {
      * 
      * @return shallow copy of data, null if flushed
      * @throws IOException
+     * @throws Exception
      */
     public byte[] flush() throws IOException {
         if (this.isFlushed()) {

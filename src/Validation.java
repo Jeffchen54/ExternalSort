@@ -39,12 +39,17 @@ public class Validation {
 
     public boolean equal(InputBuffer rBuffer, InputBuffer vBuffer) throws IOException {
         SubBuffer rsBuffer = new SubBuffer();
-
         SubBuffer vsBuffer = new SubBuffer();
-
+        rBuffer.rewind();
+        vBuffer.rewind();
+        
+        
         while (!rBuffer.endOfFile() && !vBuffer.endOfFile()) {
             rsBuffer.setData(rBuffer.getData());
-            vsBuffer.setData(vBuffer.getData());
+            vsBuffer.setData(vBuffer.getData()); 
+            System.out.println(rsBuffer.getKey());
+            System.out.println(vsBuffer.getKey());
+            
             if (rsBuffer.compareTo(vsBuffer) != 0){
                 key = rBuffer.nextDouble(8);  // this is not working
                 return false;

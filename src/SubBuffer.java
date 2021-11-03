@@ -36,6 +36,7 @@ public class SubBuffer implements Comparable<SubBuffer> {
     private byte[] data;
     private ByteBuffer buffer;
     private boolean flushed;
+    private int id;
 
     // Constructor -------------------------------------------------------
 
@@ -60,17 +61,18 @@ public class SubBuffer implements Comparable<SubBuffer> {
 
         this.setData(src);
         buffer = ByteBuffer.wrap(data);
+        id = -1;
     }
 
 
     /**
      * Initializes fields with no data, flushed set to true
-     * 
      */
     public SubBuffer() {
         data = new byte[8192];
         flushed = true;
         buffer = ByteBuffer.wrap(data);
+        id = -1;
     }
 
     // Functions -----------------------------------------------------------
@@ -112,6 +114,7 @@ public class SubBuffer implements Comparable<SubBuffer> {
         }
 
         flushed = true;
+        id = -1;
         return data;
     }
 
@@ -188,6 +191,27 @@ public class SubBuffer implements Comparable<SubBuffer> {
 
         return 1;
 
+    }
+
+
+    /**
+     * Sets buffer id
+     * 
+     * @param src
+     *            new id
+     */
+    public void setID(int src) {
+        id = src;
+    }
+
+
+    /**
+     * Returns id
+     * 
+     * @return id, -1 if not set or flushed
+     */
+    public int getID() {
+        return id;
     }
 
     // Helpers -----------------------------------------------------------

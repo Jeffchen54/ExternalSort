@@ -53,7 +53,7 @@ public class MainBuffer {
 
     /**
      * Inserts key into heap. Will fail if heap is full. Automatically builds
-     * min heap.
+     * min heap. key ID defaults to SubBuffer flush value.
      * 
      * @param key
      *            Value into insert into heap
@@ -65,8 +65,8 @@ public class MainBuffer {
         }
         int curr = elements++;
         heap[curr].setData(key);
-        ; // Start at end of heap
-          // Now sift up until curr's parent's key <= curr's key
+        // Start at end of heap
+        // Now sift up until curr's parent's key <= curr's key
         while ((curr != 0) && (heap[curr].compareTo(heap[parent(curr)]) <= 0)) {
             swap(curr, parent(curr));
             curr = parent(curr);
@@ -75,7 +75,32 @@ public class MainBuffer {
 
 
     /**
-     * Flushes min value. Fails if heap is empty. Automatically builds min heap.
+     * Inserts key into heap. Will fail if heap is full. Automatically builds
+     * min heap. Assigns an ID to this key.
+     * 
+     * @param key
+     *            Value into insert into heap
+     */
+    public void insert(byte[] key, int id) {
+        if (elements >= size) {
+            System.out.println("Heap is full");
+            return;
+        }
+        int curr = elements++;
+        heap[curr].setData(key);
+        heap[curr].setID(id);
+
+        // Start at end of heap
+        // Now sift up until curr's parent's key <= curr's key
+        while ((curr != 0) && (heap[curr].compareTo(heap[parent(curr)]) <= 0)) {
+            swap(curr, parent(curr));
+            curr = parent(curr);
+        }
+    }
+
+
+    /**
+     * Returns min value. Fails if heap is empty. Automatically builds min heap.
      * 
      * @return min value data, null if fails.
      */
@@ -90,7 +115,45 @@ public class MainBuffer {
 
 
     /**
-     * Initiates 1 cycle of ReplacementSelection
+     * Saves shallow copy of min value to dest. Returns ID of the min value.
+     * Fails if heap is empty. Automatically builds min heap.
+     * 
+     * @param dest
+     *            Destination to store min value, null if fails
+     * @return ID of min key, -1 if fails
+     */
+    public int removeMin(byte[] dest) throws IOException {
+        if (elements == 0) {
+            dest = null;
+            return -1;
+        } // Removing from empty heap
+        swap(0, --elements); // Swap min with last value
+        siftdown(0); // Put new heap root val in correct place
+        dest = heap[elements].getData();
+        return heap[elements].getID();
+    }
+
+
+    /**
+     * Initiates 1 cycle of ReplacementSelection.
+     * 
+     * Will not do anything if heapSize() is 0. Removes smallest value,
+     * sets compare's data to it. Afterwards, compares the removed smallest
+     * value to key.
+     * 
+     * If key >= smallest value, replace smallest val's position in heap with
+     * key. Shift down to make minheap.
+     * 
+     * If key < smallest value, replace smallest val's position in heap with
+     * key. Swap key with current largest value in heap. Heap size decremented.
+     * Shift down largest value to make minheap.
+     * 
+     * Notes:
+     * - Call insert(byte[]) to insert initial RS elements
+     * - Call heapSize() to get current heap size
+     * - Call reactivateHeap() to reactivate all keys < smallest value in heap.
+     * - Call replacementSelection(null, OutputBuffer) to remove smallest
+     * value without adding new values.
      * 
      * @param key
      *            Block to insert into heap. Can be null.
@@ -139,23 +202,34 @@ public class MainBuffer {
 
 
     /**
-     * Reactivates all inactive heap elements
+     * Reactivates all inactive heap elements. Does not activate heap elements
+     * that have not yet been inserted to.
      */
     public void reactivateHeap() {
-        elements = 8;
+
+        while (elements != 8 && !heap[elements].isFlushed()) {
+            elements++;
+        }
         buildheap();
     }
 
 
-    // Heapify contents of Heap
-    void buildheap() {
+    /**
+     * Builds heap from rt to the # of elements in the heap.
+     */
+    private void buildheap() {
         for (int i = elements / 2 - 1; i >= 0; i--) {
             siftdown(i);
         }
     }
 
 
-    // Put element in its correct place
+    /**
+     * Puts element at pos in heap into correct minheap position
+     * 
+     * @param pos
+     *            Position in heap to put into correct minheap position
+     */
     private void siftdown(int pos) {
         if ((pos < 0) || (pos >= elements)) {
             return;
@@ -205,7 +279,7 @@ public class MainBuffer {
 
 
     /**
-     * Checks if pos position in heap is a left child
+     * Gets parent's leftchild position
      * 
      * @param pos
      *            Position in heap

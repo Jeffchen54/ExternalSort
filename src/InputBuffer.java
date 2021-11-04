@@ -244,6 +244,17 @@ public class InputBuffer {
 
 
     /**
+     * Returns file position. Represents end of the current block
+     * 
+     * @return file position at end of current block
+     * @throws IOException
+     */
+    public long filePointer() throws IOException {
+        return file.getFilePointer();
+    }
+
+
+    /**
      * Closes the file
      * 
      * @throws IOException

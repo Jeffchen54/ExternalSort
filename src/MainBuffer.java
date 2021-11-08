@@ -115,22 +115,17 @@ public class MainBuffer {
 
 
     /**
-     * Saves shallow copy of min value to dest. Returns ID of the min value.
-     * Fails if heap is empty. Automatically builds min heap.
+     * Returns min value. Fails if heap is empty. Automatically builds min heap.
      * 
-     * @param dest
-     *            Destination to store min value, null if fails
-     * @return ID of min key, -1 if fails
+     * @return min value data, null if fails.
      */
-    public int removeMin(byte[] dest) throws IOException {
+    public byte[] flushMin() throws IOException {
         if (elements == 0) {
-            dest = null;
-            return -1;
+            return null;
         } // Removing from empty heap
         swap(0, --elements); // Swap min with last value
         siftdown(0); // Put new heap root val in correct place
-        dest = heap[elements].getData();
-        return heap[elements].getID();
+        return heap[elements].flush();
     }
 
 
@@ -169,7 +164,7 @@ public class MainBuffer {
 
         // No more input values left
         if (key == null) {
-            compare.setData(removeMin());
+            compare.setData(flushMin());
         }
         // More input values
         else {
@@ -192,6 +187,26 @@ public class MainBuffer {
 
 
     /**
+     * Saves shallow copy of min value to dest. Returns ID of the min value.
+     * Fails if heap is empty. Automatically builds min heap.
+     * 
+     * @param dest
+     *            Destination to store min value, null if fails
+     * @return ID of min key, -1 if fails
+     */
+    public int removeMin(byte[] dest) throws IOException {
+        if (elements == 0) {
+            dest = null;
+            return -1;
+        } // Removing from empty heap
+        swap(0, --elements); // Swap min with last value
+        siftdown(0); // Put new heap root val in correct place
+        dest = heap[elements].getData();
+        return heap[elements].getID();
+    }
+
+
+    /**
      * Returns heap size
      * 
      * @return # of elements in heap
@@ -206,10 +221,14 @@ public class MainBuffer {
      * that have not yet been inserted to.
      */
     public void reactivateHeap() {
-
-        while (elements != 8 && !heap[elements].isFlushed()) {
-            elements++;
+        int livePosition = 0;
+        for (int i = 0; i < size; i++) {
+            if (!heap[i].isFlushed()) {
+                this.swap(i, livePosition);
+                livePosition++;
+            }
         }
+        elements = livePosition;
         buildheap();
     }
 

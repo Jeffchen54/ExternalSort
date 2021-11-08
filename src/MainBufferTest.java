@@ -31,7 +31,8 @@ import student.TestCase;
 
 // Java Doc ------------------------------------------------------------------
 /**
- * Test MainBuffer
+ * Test MainBuffer. Will also tests if Replacement selection and merge
+ * are possible with the MainBuffer.
  * 
  * @author chenj (chenjeff4840)
  * @version 11.3.2021
@@ -73,26 +74,59 @@ public class MainBufferTest extends TestCase {
      * @throws FileNotFoundException
      */
     public void testRandomFile_RS() throws FileNotFoundException, IOException {
-        this.validate("SampleSort4B.bin", "SampleSort4Bsorted.bin");
-        assertEquals(4, created.length() >> 13);
-        this.setUp();
-        this.validate("SampleSort8B.bin", "SampleSort8Bsorted.bin");
-        assertEquals(8, created.length() >> 13);
-        this.setUp();
+        /*
+         * this.validate("SampleSort4B.bin", "SampleSort4Bsorted.bin");
+         * assertEquals(4, created.length() >> 13);
+         * this.setUp();
+         * this.validate("SampleSort8B.bin", "SampleSort8Bsorted.bin");
+         * assertEquals(8, created.length() >> 13);
+         *//*this.setUp();
         this.ioValidate("SampleSort16B.bin");
         assertEquals(16, created.length() >> 13);
-        this.setUp();
+        this.setUp();*/
+        /*
+         * this.ioValidate("SampleSort32B.bin");
+         * assertEquals(32, created.length() >> 13);
+         * this.setUp();
+         * this.ioValidate("SampleSort50B.bin");
+         * assertEquals(50, created.length() >> 13);
+         * this.setUp();
+         * this.ioValidate("SampleSort256B.bin");
+         * assertEquals(256, created.length() >> 13);
+         * this.setUp();
+         * this.ioValidate("SampleSort1250B.bin");
+         * assertEquals(1250, created.length() >> 13);
+         */
+
+        // Tests run files ------------------------------------------------
+        // Single run files
+        ArrayWrapper<Long> begin = new ArrayWrapper<>();
+        ArrayWrapper<Long> end = new ArrayWrapper<>();
+        this.createRun("SampleSort4B.bin", "run4B.bin", begin, end);
+        assertEquals(1, begin.get().length);
+        assertEquals(1, end.get().length);
+        assertEquals(0, begin.get()[0], 0.1);
+        assertEquals(4 << 13, end.get()[0], 0.1);
+        this.createRun("SampleSort8B.bin", "run8B.bin", begin, end);
+        assertEquals(1, begin.get().length);
+        assertEquals(1, end.get().length);
+        assertEquals(0, begin.get()[0], 0.1);
+        assertEquals(8 << 13, end.get()[0], 0.1);
+        this.createRun("SampleSort16B.bin", "run16B.bin", begin, end);
+        this.ioValidate("SampleSort16B.bin");
+        assertEquals(2, begin.get().length);
+        assertEquals(2, end.get().length);
+        assertEquals(0, begin.get()[0], 0.1);
+        assertEquals(end.get()[0], begin.get()[1], 0.1);
+        assertEquals(12 << 13, end.get()[0], 0.1);
+        assertEquals(16 << 13, end.get()[1], 0.1);
+        this.createRun("SampleSort32B.bin", "run32B.bin", begin, end);
         this.ioValidate("SampleSort32B.bin");
-        assertEquals(32, created.length() >> 13);
-        this.setUp();
-        this.ioValidate("SampleSort50B.bin");
-        assertEquals(50, created.length() >> 13);
-        this.setUp();
-        this.ioValidate("SampleSort256B.bin");
-        assertEquals(256, created.length() >> 13);
-        this.setUp();
-        this.ioValidate("SampleSort1250B.bin");
-        assertEquals(1250, created.length() >> 13);
+        assertEquals(4, begin.get().length);
+        assertEquals(4, end.get().length);
+
+        //
+
     }
 
 
@@ -105,6 +139,7 @@ public class MainBufferTest extends TestCase {
      * @throws IOException
      * @throws FileNotFoundException
      */
+    @Ignore
     public void testSortedFile_RS() throws FileNotFoundException, IOException {
         this.validate("SampleSort4Bsorted.bin", "SampleSort4Bsorted.bin");
         assertEquals(4, created.length() >> 13);
@@ -138,6 +173,8 @@ public class MainBufferTest extends TestCase {
      * @throws IOException
      * @throws FileNotFoundException
      */
+    @Ignore
+
     public void testReverseSortedFile_RS()
         throws FileNotFoundException,
         IOException {
@@ -171,6 +208,7 @@ public class MainBufferTest extends TestCase {
      * 
      * @throws IOException
      */
+    @Ignore
     public void testInsertRemoveMin() throws IOException {
 
         // Initializing byte array
@@ -324,6 +362,7 @@ public class MainBufferTest extends TestCase {
      * 
      * @throws IOException
      */
+    @Ignore
     public void testReplacementSelection() throws IOException {
         // Initializing byte array
         byte[] data = new byte[8192];
@@ -451,6 +490,7 @@ public class MainBufferTest extends TestCase {
      * 
      * @throws IOException
      */
+    @Ignore
     public void testReactivateHeap() throws IOException {
         byte[] data = new byte[8192];
         for (int i = 8; i < 16; i++) {
@@ -510,6 +550,7 @@ public class MainBufferTest extends TestCase {
     /**
      * Tests merge sort process
      */
+    @Ignore
     public void testMergeSort() {
 
     }
@@ -527,8 +568,8 @@ public class MainBufferTest extends TestCase {
     private void createRun(
         String inputFile,
         String runFile,
-        long[] runBeginDest,
-        long[] runEndDest)
+        ArrayWrapper<Long> runBeginDest,
+        ArrayWrapper<Long> runEndDest)
         throws FileNotFoundException,
         IOException {
         RandomAccessFile blocks = new RandomAccessFile(inputFile, "r");
@@ -538,6 +579,7 @@ public class MainBufferTest extends TestCase {
         File run = new File(runFile);
         run.delete();
         run.createNewFile();
+        int inserted = 1;
 
         output = new OutputBuffer(new RandomAccessFile(runFile, "rw"));
         int counter = 0;
@@ -561,13 +603,15 @@ public class MainBufferTest extends TestCase {
             maxRunCount++;
         }
 
-        long[] runBegin = new long[maxRunCount];
-        long[] runEnd = new long[maxRunCount];
+        Long[] runBegin = new Long[maxRunCount];
+        Long[] runEnd = new Long[maxRunCount];
         int runID = 0;
 
         // Filling heap with 8 values
         while (counter < 8 && !input.endOfFile()) {
-
+            input.next(8);
+            System.out.println(inserted + " Inserted:" + input.nextDouble(8));
+            inserted++;
             heap.insert(input.getData());
             input.nextBlock();
             counter++;
@@ -575,15 +619,22 @@ public class MainBufferTest extends TestCase {
 
         // Last entry
         if (counter < 8) {
-
+            input.next(8);
+            System.out.println(inserted + " Inserted:" + input.nextDouble(8));
+            inserted++;
             heap.insert(input.getData());
             input.nextBlock();
         }
-        // Replacement selection
-        while (!input.endOfFile()) {
+        // Replacement selection - Processes all Input file items, heap size
+        // may not be 0 after heap is finished
+        while (heap.heapSize() != 0 && !input.endOfFile()) {
             // Calling replacement selection until either max run is reached or
             // no more input
             while (!input.endOfFile() && heap.heapSize() != 0) {
+                input.next(8);
+                System.out.println(inserted + " Inserted:" + input.nextDouble(
+                    8));
+                inserted++;
                 heap.replacementSelection(input.getData(), output);
                 input.nextBlock();
                 output.flush();
@@ -596,7 +647,7 @@ public class MainBufferTest extends TestCase {
 
                 // Case for runBegin
                 if (runID == 0) {
-                    runBegin[0] = 0;
+                    runBegin[0] = 0L;
                 }
                 else {
                     runBegin[runID] = runEnd[runID - 1];
@@ -612,39 +663,75 @@ public class MainBufferTest extends TestCase {
 
             // Last statement not covered by while
             if (input.endOfFile()) {
+                input.next(8);
+                System.out.println(inserted + " Inserted:" + input.nextDouble(
+                    8));
+                inserted++;
                 heap.replacementSelection(input.getData(), output);
                 output.flush();
+
+                int heapRemain = heap.heapSize();
+                // Wiping remaining heap elements
+                while (heap.heapSize() != 0) {
+
+                    heap.replacementSelection(null, output);
+                    input.nextBlock();
+                    output.flush();
+                }
+                // Case for runBegin
+                if (runID == 0) {
+                    runBegin[0] = 0L;
+                }
+                else {
+                    runBegin[runID] = runEnd[runID - 1];
+                }
+
+                // runEnd only has 1 case
+                // Current position run end == InputBlocks read - Blocks in heap
+                runEnd[runID] = input.filePointer() - (heapRemain << 13);
+
+                // Incrementing runID
+                runID++;
             }
+
         }
 
+        // Wiping remaining live heap elements
+        /**
+         * while (heap.heapSize() > 0) {
+         * heap.replacementSelection(null, output);
+         * output.flush();
+         * }
+         */
+
+        // Recovering old heap elements not wiped.
         heap.reactivateHeap();
-        // Removes last elements in heap
         while (heap.heapSize() > 0) {
             heap.replacementSelection(null, output);
             output.flush();
         }
 
-        // Registers last run
+        // Registers run data
         if (runID == 0) {
-            runBegin[0] = 0;
+            runBegin[0] = 0L;
         }
         else {
             runBegin[runID] = runEnd[runID - 1];
         }
 
         // Case for runEnd since run files of size 1 are processed here
-        if (runEnd.length <= 1) {
-            runEnd[0] = input.filePointer();
-        }
-        else {
-            runEnd[runID] = input.filePointer() - 65536;
-        }
+       // if (runEnd.length <= 1) {
+         //   runEnd[0] = input.filePointer();
+        //}
+       //else {
+            runEnd[runID] = input.filePointer();
+        //}
 
         if (runBeginDest != null) {
-            runBeginDest = runBegin;
+            runBeginDest.wrap(runBegin);
         }
         if (runEndDest != null) {
-            runBeginDest = runBegin;
+            runEndDest.wrap(runEnd);
         }
 
         input.close();

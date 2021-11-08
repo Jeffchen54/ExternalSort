@@ -65,38 +65,13 @@ public class MainBufferTest extends TestCase {
 
 
     /**
-     * Tests replacement selection on a random sort file. It is extremely
-     * difficult to test run files with assert statements.
-     * 
-     * Length of run files created tested and run order by IO output
+     * Tests creation of runFile by visual inspection and run length validation.
      * 
      * @throws IOException
      * @throws FileNotFoundException
      */
+    @Ignore
     public void testRandomFile_RS() throws FileNotFoundException, IOException {
-        /*
-         * this.validate("SampleSort4B.bin", "SampleSort4Bsorted.bin");
-         * assertEquals(4, created.length() >> 13);
-         * this.setUp();
-         * this.validate("SampleSort8B.bin", "SampleSort8Bsorted.bin");
-         * assertEquals(8, created.length() >> 13);
-         *//*this.setUp();
-        this.ioValidate("SampleSort16B.bin");
-        assertEquals(16, created.length() >> 13);
-        this.setUp();*/
-        /*
-         * this.ioValidate("SampleSort32B.bin");
-         * assertEquals(32, created.length() >> 13);
-         * this.setUp();
-         * this.ioValidate("SampleSort50B.bin");
-         * assertEquals(50, created.length() >> 13);
-         * this.setUp();
-         * this.ioValidate("SampleSort256B.bin");
-         * assertEquals(256, created.length() >> 13);
-         * this.setUp();
-         * this.ioValidate("SampleSort1250B.bin");
-         * assertEquals(1250, created.length() >> 13);
-         */
 
         // Tests run files ------------------------------------------------
         // Single run files
@@ -107,34 +82,107 @@ public class MainBufferTest extends TestCase {
         assertEquals(1, end.get().length);
         assertEquals(0, begin.get()[0], 0.1);
         assertEquals(4 << 13, end.get()[0], 0.1);
+
         this.createRun("SampleSort8B.bin", "run8B.bin", begin, end);
         assertEquals(1, begin.get().length);
         assertEquals(1, end.get().length);
         assertEquals(0, begin.get()[0], 0.1);
         assertEquals(8 << 13, end.get()[0], 0.1);
+
         this.createRun("SampleSort16B.bin", "run16B.bin", begin, end);
-        this.ioValidate("SampleSort16B.bin");
         assertEquals(2, begin.get().length);
         assertEquals(2, end.get().length);
         assertEquals(0, begin.get()[0], 0.1);
         assertEquals(end.get()[0], begin.get()[1], 0.1);
         assertEquals(12 << 13, end.get()[0], 0.1);
         assertEquals(16 << 13, end.get()[1], 0.1);
+
         this.createRun("SampleSort32B.bin", "run32B.bin", begin, end);
-        this.ioValidate("SampleSort32B.bin");
         assertEquals(4, begin.get().length);
         assertEquals(4, end.get().length);
+        assertEquals(0, begin.get()[0], 0.1);
+        assertEquals(end.get()[0], begin.get()[1], 0.1);
+        assertEquals(end.get()[1], begin.get()[2], 0.1);
+        assertNull(begin.get()[3]);
 
-        //
+        assertEquals(16 << 13, end.get()[0], 0.1);
+        assertEquals(29 << 13, end.get()[1], 0.1);
+        assertEquals(32 << 13, end.get()[2], 0.1);
+        assertNull(end.get()[3]);
 
+        this.createRun("SampleSort50B.bin", "run50B.bin", begin, end);
+        assertEquals(7, begin.get().length);
+        assertEquals(7, end.get().length);
+        assertEquals(0, begin.get()[0], 0.1);
+        assertEquals(end.get()[0], begin.get()[1], 0.1);
+        assertEquals(end.get()[1], begin.get()[2], 0.1);
+        assertEquals(end.get()[2], begin.get()[3], 0.1);
+        assertNull(begin.get()[4]);
+        assertNull(begin.get()[5]);
+        assertNull(begin.get()[6]);
+        assertEquals(14 << 13, end.get()[0], 0.1);
+        assertEquals(29 << 13, end.get()[1], 0.1);
+        assertEquals(42 << 13, end.get()[2], 0.1);
+        assertEquals(50 << 13, end.get()[3], 0.1);
+        assertNull(end.get()[4]);
+        assertNull(end.get()[5]);
+        assertNull(end.get()[6]);
+
+        this.createRun("SampleSort256B.bin", "run256B.bin", begin, end);
+        assertEquals(32, begin.get().length);
+        assertEquals(32, end.get().length);
+        assertEquals(0, begin.get()[0], 0.1);
+        assertEquals(end.get()[0], begin.get()[1], 0.1);
+        assertEquals(end.get()[1], begin.get()[2], 0.1);
+        assertEquals(end.get()[2], begin.get()[3], 0.1);
+        assertEquals(end.get()[3], begin.get()[4], 0.1);
+        assertEquals(end.get()[4], begin.get()[5], 0.1);
+        assertEquals(end.get()[5], begin.get()[6], 0.1);
+        assertEquals(end.get()[6], begin.get()[7], 0.1);
+        assertEquals(end.get()[7], begin.get()[8], 0.1);
+        assertEquals(end.get()[8], begin.get()[9], 0.1);
+        assertEquals(end.get()[9], begin.get()[10], 0.1);
+        assertEquals(end.get()[10], begin.get()[11], 0.1);
+        assertEquals(end.get()[11], begin.get()[12], 0.1);
+        assertEquals(end.get()[12], begin.get()[13], 0.1);
+        assertEquals(end.get()[13], begin.get()[14], 0.1);
+        assertEquals(end.get()[14], begin.get()[15], 0.1);
+        assertNull(begin.get()[16]);
+
+        assertEquals(16 << 13, end.get()[0], 0.1);
+        assertEquals(31 << 13, end.get()[1], 0.1);
+        assertEquals(45 << 13, end.get()[2], 0.1);
+        assertEquals(59 << 13, end.get()[3], 0.1);
+        assertEquals(78 << 13, end.get()[4], 0.1);
+        assertEquals(93 << 13, end.get()[5], 0.1);
+        assertEquals(111 << 13, end.get()[6], 0.1);
+        assertEquals(129 << 13, end.get()[7], 0.1);
+        assertEquals(146 << 13, end.get()[8], 0.1);
+        assertEquals(161 << 13, end.get()[9], 0.1);
+        assertEquals(178 << 13, end.get()[10], 0.1);
+        assertEquals(196 << 13, end.get()[11], 0.1);
+        assertEquals(213 << 13, end.get()[12], 0.1);
+        assertEquals(228 << 13, end.get()[13], 0.1);
+        assertEquals(245 << 13, end.get()[14], 0.1);
+        assertEquals(256 << 13, end.get()[15], 0.1);
+        assertNull(end.get()[16]);
+
+        // Largest file to be generated successfully in genfile.
+        // Used for speed purposes only and light testing & debug
+        // 10MB file should be good enough
+        this.createRun("SampleSort1250B.bin", "run1250B.bin", begin, end);
+        this.ioValidate("SampleSort1250B.bin");
+        assertEquals(157, begin.get().length);
+        assertEquals(157, end.get().length);
     }
 
 
     /**
-     * Tests replacement selection on a already sort file. It is extremely
-     * difficult to test run files with assert statements.
+     * Tests replacement selection on a already sort file. Validates file
+     * contents.
      * 
-     * Length of run files created tested and run order by IO output
+     * Length of run files created tested and run order by IO output.
+     * Can be slow due to run file creation and validation by linear comparison.
      * 
      * @throws IOException
      * @throws FileNotFoundException
@@ -147,59 +195,78 @@ public class MainBufferTest extends TestCase {
         this.validate("SampleSort8Bsorted.bin", "SampleSort8Bsorted.bin");
         assertEquals(8, created.length() >> 13);
         this.setUp();
-        this.ioValidate("SampleSort16Bsorted.bin");
+        this.validate("SampleSort16Bsorted.bin", "SampleSort16Bsorted.bin");
         assertEquals(16, created.length() >> 13);
         this.setUp();
-        this.ioValidate("SampleSort32Bsorted.bin");
+        this.validate("SampleSort32Bsorted.bin", "SampleSort32Bsorted.bin");
         assertEquals(32, created.length() >> 13);
         this.setUp();
-        this.ioValidate("SampleSort50Bsorted.bin");
+        this.validate("SampleSort50Bsorted.bin", "SampleSort50Bsorted.bin");
         assertEquals(50, created.length() >> 13);
         this.setUp();
-        this.ioValidate("SampleSort256Bsorted.bin");
+        this.validate("SampleSort256Bsorted.bin", "SampleSort256Bsorted.bin");
         assertEquals(256, created.length() >> 13);
         this.setUp();
-        this.ioValidate("SampleSort1250Bsorted.bin");
+        this.validate("SampleSort1250Bsorted.bin", "SampleSort1250Bsorted.bin");
         assertEquals(1250, created.length() >> 13);
     }
 
 
     /**
-     * Tests replacement selection on reverse sort file. It is extremely
-     * difficult to test run files with assert statements.
+     * Tests replacement selection on reverse sort file.
      * 
-     * Length of run files created tested and run order by IO output
+     * Reverse sorted runs appear as reverse order 8-block segments on
+     * run file.
+     * 
+     * Run file validity checked by inspection and by # of runs where if a file
+     * x
+     * has the worst case scenario (reverse sorted), then all runs are <= 8,
+     * therefore, # of runs are the worst case number
      * 
      * @throws IOException
      * @throws FileNotFoundException
      */
-    @Ignore
-
     public void testReverseSortedFile_RS()
         throws FileNotFoundException,
         IOException {
         this.validate("SampleSort4BreverseSorted.bin",
             "SampleSort4Bsorted.bin");
         assertEquals(4, created.length() >> 13);
+
         this.setUp();
         this.validate("SampleSort8Breversesorted.bin",
             "SampleSort8Bsorted.bin");
         assertEquals(8, created.length() >> 13);
+
         this.setUp();
-        this.ioValidate("SampleSort16Breversesorted.bin");
-        assertEquals(16, created.length() >> 13);
+        ArrayWrapper<Long> begin = new ArrayWrapper<>();
+        ArrayWrapper<Long> end = new ArrayWrapper<>();
+
+        this.createRun("SampleSort16Breversesorted.bin", "run16B.bin", begin,
+            end);
+        assertEquals(16 << 13, end.get()[1], 0.1);
+
         this.setUp();
-        this.ioValidate("SampleSort32Breversesorted.bin");
-        assertEquals(32, created.length() >> 13);
+        this.createRun("SampleSort32Breversesorted.bin", "run32B.bin", begin,
+            end);
+        assertEquals(32 << 13, end.get()[3], 0.1);
+
         this.setUp();
-        this.ioValidate("SampleSort50Breversesorted.bin");
-        assertEquals(50, created.length() >> 13);
+        this.createRun("SampleSort50Breversesorted.bin", "run50B.bin", begin,
+            end);
+        assertEquals(50 << 13, end.get()[6], 0.1);
+
         this.setUp();
-        this.ioValidate("SampleSort256Breversesorted.bin");
-        assertEquals(256, created.length() >> 13);
+        this.createRun("SampleSort256Breversesorted.bin", "run256B.bin", begin,
+            end);
+        assertEquals(256 << 13, end.get()[31], 0.1);
+
         this.setUp();
-        this.ioValidate("SampleSort1250Breversesorted.bin");
-        assertEquals(1250, created.length() >> 13);
+        this.createRun("SampleSort1250Breversesorted.bin", "run1250B.bin",
+            begin, end);
+        assertEquals(1250 << 13, end.get()[156], 0.1);
+
+        this.ioValidate("SampleSort8Breversesorted.bin");
     }
 
 
@@ -208,7 +275,6 @@ public class MainBufferTest extends TestCase {
      * 
      * @throws IOException
      */
-    @Ignore
     public void testInsertRemoveMin() throws IOException {
 
         // Initializing byte array
@@ -362,7 +428,6 @@ public class MainBufferTest extends TestCase {
      * 
      * @throws IOException
      */
-    @Ignore
     public void testReplacementSelection() throws IOException {
         // Initializing byte array
         byte[] data = new byte[8192];
@@ -410,13 +475,9 @@ public class MainBufferTest extends TestCase {
         }
         assertEquals(0, heap.heapSize());
 
-        // Resetting heap, checking if heap elements are correct
+        
+        // Resetting heap, checking if non flushed elements are correct
         heap.reactivateHeap();
-        assertEquals(8, heap.heapSize());
-        for (int i = 1; i <= 8; i++) {
-            heap.replacementSelection(null, output);
-            assertEquals(i, output.flush()[8], 0.1);
-        }
         assertEquals(0, heap.heapSize());
 
         // Inserting mix of smaller and larger elements than min element
@@ -480,6 +541,12 @@ public class MainBufferTest extends TestCase {
             heap.replacementSelection(null, output);
             assertEquals(i, output.flush()[8]);
         }
+        
+        // Calling RS once heap is 0
+        assertEquals(0, heap.heapSize());
+        heap.replacementSelection(null, output);
+        assertEquals(0, heap.heapSize());
+        
         output.close();
 
     }
@@ -490,7 +557,6 @@ public class MainBufferTest extends TestCase {
      * 
      * @throws IOException
      */
-    @Ignore
     public void testReactivateHeap() throws IOException {
         byte[] data = new byte[8192];
         for (int i = 8; i < 16; i++) {
@@ -655,7 +721,7 @@ public class MainBufferTest extends TestCase {
 
                 // runEnd only has 1 case
                 // Current position run end == InputBlocks read - Blocks in heap
-                runEnd[runID] = input.filePointer() - 65536;
+                runEnd[runID] = input.filePointer() - 73728;
 
                 // Incrementing runID
                 runID++;
@@ -673,7 +739,6 @@ public class MainBufferTest extends TestCase {
                 int heapRemain = heap.heapSize();
                 // Wiping remaining heap elements
                 while (heap.heapSize() != 0) {
-
                     heap.replacementSelection(null, output);
                     input.nextBlock();
                     output.flush();
@@ -688,7 +753,8 @@ public class MainBufferTest extends TestCase {
 
                 // runEnd only has 1 case
                 // Current position run end == InputBlocks read - Blocks in heap
-                runEnd[runID] = input.filePointer() - (heapRemain << 13);
+                // that are not flushed
+                runEnd[runID] = input.filePointer() - ((8 - heapRemain) << 13);
 
                 // Incrementing runID
                 runID++;
@@ -706,27 +772,28 @@ public class MainBufferTest extends TestCase {
 
         // Recovering old heap elements not wiped.
         heap.reactivateHeap();
-        while (heap.heapSize() > 0) {
-            heap.replacementSelection(null, output);
-            output.flush();
-        }
+        if (heap.heapSize() > 0) {
+            while (heap.heapSize() > 0) {
+                heap.replacementSelection(null, output);
+                output.flush();
+            }
 
-        // Registers run data
-        if (runID == 0) {
-            runBegin[0] = 0L;
-        }
-        else {
-            runBegin[runID] = runEnd[runID - 1];
-        }
+            // Registers run data
+            if (runID == 0) {
+                runBegin[0] = 0L;
+            }
+            else {
+                runBegin[runID] = runEnd[runID - 1];
+            }
 
-        // Case for runEnd since run files of size 1 are processed here
-       // if (runEnd.length <= 1) {
-         //   runEnd[0] = input.filePointer();
-        //}
-       //else {
+            // Case for runEnd since run files of size 1 are processed here
+            // if (runEnd.length <= 1) {
+            // runEnd[0] = input.filePointer();
+            // }
+            // else {
             runEnd[runID] = input.filePointer();
-        //}
-
+            // }
+        }
         if (runBeginDest != null) {
             runBeginDest.wrap(runBegin);
         }

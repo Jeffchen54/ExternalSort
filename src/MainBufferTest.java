@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -672,10 +673,111 @@ public class MainBufferTest extends TestCase {
         this.eightMerge(begin, end, "run256B.bin", "output256B.bin", inputBuff,
             outputBuff);
         this.validate("output256B.bin", "SampleSort256Bsorted.bin");
+        this.createRun("SampleSort1250B.bin", "run1250B.bin", begin, end);
+        this.eightMerge(begin, end, "run1250B.bin", "output1250B.bin", inputBuff,
+            outputBuff);
+        this.validate("output1250B.bin", "SampleSort1250Bsorted.bin");
+                
+        this.createRun("SampleSort4Breversesorted.bin", "run4B.bin", begin, end);
+        this.eightMerge(begin, end, "run4B.bin", "output4B.bin", inputBuff,
+            outputBuff);
+        this.validate("output4B.bin", "SampleSort4Bsorted.bin");
+        this.createRun("SampleSort8Breversesorted.bin", "run8B.bin", begin, end);
+        this.eightMerge(begin, end, "run8B.bin", "output8B.bin", inputBuff,
+            outputBuff);
+        this.validate("output8B.bin", "SampleSort8Bsorted.bin");
+        this.createRun("SampleSort16Breversesorted.bin", "run16B.bin", begin, end);
+        this.eightMerge(begin, end, "run16B.bin", "output16B.bin", inputBuff,
+            outputBuff);
+        this.validate("output16B.bin", "SampleSort16Bsorted.bin");
+        this.createRun("SampleSort32Breversesorted.bin", "run32B.bin", begin, end);
+        this.eightMerge(begin, end, "run32B.bin", "output32B.bin", inputBuff,
+            outputBuff);
+        this.validate("output32B.bin", "SampleSort32Bsorted.bin");
+        this.createRun("SampleSort50Breversesorted.bin", "run50B.bin", begin, end);
+        this.eightMerge(begin, end, "run50B.bin", "output50B.bin", inputBuff,
+            outputBuff);
+        this.validate("output50B.bin", "SampleSort50Bsorted.bin");
+        this.createRun("SampleSort256Breversesorted.bin", "run256B.bin", begin, end);
+        this.eightMerge(begin, end, "run256B.bin", "output256B.bin", inputBuff,
+            outputBuff);
+        this.validate("output256B.bin", "SampleSort256Bsorted.bin");
+        this.createRun("SampleSort1250Breversesorted.bin", "run1250B.bin", begin, end);
+        this.eightMerge(begin, end, "run1250B.bin", "output1250B.bin", inputBuff,
+            outputBuff);
+        this.validate("output1250B.bin", "SampleSort1250Bsorted.bin");
+        
+        this.createRun("SampleSort4Bsorted.bin", "run4B.bin", begin, end);
+        this.eightMerge(begin, end, "run4B.bin", "output4B.bin", inputBuff,
+            outputBuff);
+        this.validate("output4B.bin", "SampleSort4Bsorted.bin");
+        this.createRun("SampleSort8Bsorted.bin", "run8B.bin", begin, end);
+        this.eightMerge(begin, end, "run8B.bin", "output8B.bin", inputBuff,
+            outputBuff);
+        this.validate("output8B.bin", "SampleSort8Bsorted.bin");
+        this.createRun("SampleSort16Bsorted.bin", "run16B.bin", begin, end);
+        this.eightMerge(begin, end, "run16B.bin", "output16B.bin", inputBuff,
+            outputBuff);
+        this.validate("output16B.bin", "SampleSort16Bsorted.bin");
+        this.createRun("SampleSort32Bsorted.bin", "run32B.bin", begin, end);
+        this.eightMerge(begin, end, "run32B.bin", "output32B.bin", inputBuff,
+            outputBuff);
+        this.validate("output32B.bin", "SampleSort32Bsorted.bin");
+        this.createRun("SampleSort50Bsorted.bin", "run50B.bin", begin, end);
+        this.eightMerge(begin, end, "run50B.bin", "output50B.bin", inputBuff,
+            outputBuff);
+        this.validate("output50B.bin", "SampleSort50Bsorted.bin");
+        this.createRun("SampleSort256Bsorted.bin", "run256B.bin", begin, end);
+        this.eightMerge(begin, end, "run256B.bin", "output256B.bin", inputBuff,
+            outputBuff);
+        this.validate("output256B.bin", "SampleSort256Bsorted.bin");
+        this.createRun("SampleSort1250Bsorted.bin", "run1250B.bin", begin, end);
+        this.eightMerge(begin, end, "run1250B.bin", "output1250B.bin", inputBuff,
+            outputBuff);
+        this.validate("output1250B.bin", "SampleSort1250Bsorted.bin");
     }
+    
 
     // Helpers ----------------------------------------------------------------
-
+    
+    /**
+     * Deletes all temp files created by tests
+     */
+    @AfterClass
+    public static void deleteTempFiles() {
+        File temp = new File("output4B.bin");
+        temp.delete();
+        new File("output8B.bin");
+        temp.delete();
+        new File("output16B.bin");
+        temp.delete();
+        new File("output32B.bin");
+        temp.delete();
+        new File("output50B.bin");
+        temp.delete();
+        new File("output256B.bin");
+        temp.delete();
+        new File("output1250B.bin");
+        temp.delete();
+        
+        temp = new File("run4B.bin");
+        temp.delete();
+        new File("run8B.bin");
+        temp.delete();
+        new File("run16B.bin");
+        temp.delete();
+        new File("run32B.bin");
+        temp.delete();
+        new File("run50B.bin");
+        temp.delete();
+        new File("run256B.bin");
+        temp.delete();
+        new File("run1250B.bin");
+        temp.delete();
+        
+        temp = new File("testing.bin");
+        temp.delete();
+    }
 
     /**
      * Performs 8-way merge
@@ -765,7 +867,8 @@ public class MainBufferTest extends TestCase {
                         + (long)(processedBlocks << 13);
                 }
 
-                // Building
+                // Incrementing run count since 1 run was just completed
+                runCount++;
             }
 
             // End of current pass, set arrays up and runfile for next pass
@@ -1065,5 +1168,7 @@ public class MainBufferTest extends TestCase {
         }
         input.close();
     }
+    
+
 
 }

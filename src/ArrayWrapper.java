@@ -66,6 +66,23 @@ public class ArrayWrapper<T> {
 
 
     /**
+     * Sets position in array to a value
+     * 
+     * @param pos
+     *            position of array to modified
+     * @param data
+     *            data to insert into value
+     */
+    public void setValue(int pos, T data) {
+        if (arr == null || arr.length >= pos) {
+            return;
+        }
+
+        arr[pos] = data;
+    }
+
+
+    /**
      * Sets array to null, clearing it
      */
     public void clear() {

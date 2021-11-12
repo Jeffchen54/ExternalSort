@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 // On my honor:
 //
@@ -115,6 +116,27 @@ public class MainBuffer {
 
 
     /**
+     * Saves shallow copy of min value to dest. Returns ID of the min value.
+     * Fails if heap is empty. Automatically builds min heap.
+     * 
+     * @param dest
+     *            Destination to store min value, null if fails.
+     *            Used as a wrapper, does not use extra space.
+     * @return ID of min key, -1 if fails
+     */
+    public int removeMin(OutputBuffer dest) throws IOException {
+        if (elements == 0) {
+            dest.setData(null);
+            return -1;
+        } // Removing from empty heap
+        swap(0, --elements); // Swap min with last value
+        siftdown(0); // Put new heap root val in correct place
+        int id = heap[elements].getID();
+        dest.setData(heap[elements].flush());
+        return id;
+    }
+
+    /**
      * Returns min value. Fails if heap is empty. Automatically builds min heap.
      * 
      * @return min value data, null if fails.
@@ -183,26 +205,6 @@ public class MainBuffer {
                 siftdown(0); // Put new heap root val in correct place
             }
         }
-    }
-
-
-    /**
-     * Saves shallow copy of min value to dest. Returns ID of the min value.
-     * Fails if heap is empty. Automatically builds min heap.
-     * 
-     * @param dest
-     *            Destination to store min value, null if fails
-     * @return ID of min key, -1 if fails
-     */
-    public int removeMin(byte[] dest) throws IOException {
-        if (elements == 0) {
-            dest = null;
-            return -1;
-        } // Removing from empty heap
-        swap(0, --elements); // Swap min with last value
-        siftdown(0); // Put new heap root val in correct place
-        dest = heap[elements].getData();
-        return heap[elements].getID();
     }
 
 

@@ -70,7 +70,6 @@ public class MainBufferTest extends TestCase {
      * @throws IOException
      * @throws FileNotFoundException
      */
-    @Ignore
     public void testRandomFile_RS() throws FileNotFoundException, IOException {
 
         // Tests run files ------------------------------------------------
@@ -187,7 +186,6 @@ public class MainBufferTest extends TestCase {
      * @throws IOException
      * @throws FileNotFoundException
      */
-    @Ignore
     public void testSortedFile_RS() throws FileNotFoundException, IOException {
         this.validate("SampleSort4Bsorted.bin", "SampleSort4Bsorted.bin");
         assertEquals(4, created.length() >> 13);
@@ -475,7 +473,6 @@ public class MainBufferTest extends TestCase {
         }
         assertEquals(0, heap.heapSize());
 
-        
         // Resetting heap, checking if non flushed elements are correct
         heap.reactivateHeap();
         assertEquals(0, heap.heapSize());
@@ -541,12 +538,12 @@ public class MainBufferTest extends TestCase {
             heap.replacementSelection(null, output);
             assertEquals(i, output.flush()[8]);
         }
-        
+
         // Calling RS once heap is 0
         assertEquals(0, heap.heapSize());
         heap.replacementSelection(null, output);
         assertEquals(0, heap.heapSize());
-        
+
         output.close();
 
     }
@@ -608,6 +605,30 @@ public class MainBufferTest extends TestCase {
             heap.replacementSelection(null, output);
             assertEquals(1, output.getData()[8]);
         }
+
+        // Flushing some values then checking if it exists after reactivation
+        heap.insert(data);
+        heap.insert(data);
+        heap.insert(data);
+        heap.insert(data);
+        heap.insert(data);
+        heap.insert(data);
+        heap.insert(data);
+        heap.insert(data);
+
+        heap.reactivateHeap();
+        heap.flushMin();
+        heap.flushMin();
+        heap.flushMin();
+        heap.flushMin();
+        heap.flushMin();
+        heap.flushMin();
+
+        heap.reactivateHeap();
+        assertEquals(2, heap.heapSize());
+        assertNotNull(heap.removeMin());
+        assertNotNull(heap.removeMin());
+        assertNull(heap.removeMin());
         output.close();
 
     }
@@ -615,13 +636,179 @@ public class MainBufferTest extends TestCase {
 
     /**
      * Tests merge sort process
+     * 
+     * @throws IOException
+     * @throws FileNotFoundException
      */
-    @Ignore
-    public void testMergeSort() {
-
+    public void testMergeSort() throws FileNotFoundException, IOException {
+        // 8B
+        ArrayWrapper<Long> begin = new ArrayWrapper<>();
+        ArrayWrapper<Long> end = new ArrayWrapper<>();
+        InputBuffer inputBuff = new InputBuffer(new RandomAccessFile(
+            "run4B.bin", "r"));
+        OutputBuffer outputBuff = new OutputBuffer(new RandomAccessFile(
+            "run4B.bin", "r"));
+        this.createRun("SampleSort4B.bin", "run4B.bin", begin, end);
+        this.eightMerge(begin, end, "run4B.bin", "output4B.bin", inputBuff,
+            outputBuff);
+        this.validate("output4B.bin", "SampleSort4Bsorted.bin");
+        this.createRun("SampleSort8B.bin", "run8B.bin", begin, end);
+        this.eightMerge(begin, end, "run8B.bin", "output8B.bin", inputBuff,
+            outputBuff);
+        this.validate("output8B.bin", "SampleSort8Bsorted.bin");
+        this.createRun("SampleSort16B.bin", "run16B.bin", begin, end);
+        this.eightMerge(begin, end, "run16B.bin", "output16B.bin", inputBuff,
+            outputBuff);
+        this.validate("output16B.bin", "SampleSort16Bsorted.bin");
+        this.createRun("SampleSort32B.bin", "run32B.bin", begin, end);
+        this.eightMerge(begin, end, "run32B.bin", "output32B.bin", inputBuff,
+            outputBuff);
+        this.validate("output32B.bin", "SampleSort32Bsorted.bin");
+        this.createRun("SampleSort50B.bin", "run50B.bin", begin, end);
+        this.eightMerge(begin, end, "run50B.bin", "output50B.bin", inputBuff,
+            outputBuff);
+        this.validate("output50B.bin", "SampleSort50Bsorted.bin");
+        this.createRun("SampleSort256B.bin", "run256B.bin", begin, end);
+        this.eightMerge(begin, end, "run256B.bin", "output256B.bin", inputBuff,
+            outputBuff);
+        this.validate("output256B.bin", "SampleSort256Bsorted.bin");
     }
 
     // Helpers ----------------------------------------------------------------
+
+
+    /**
+     * Performs 8-way merge
+     * 
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    private void eightMerge(
+        ArrayWrapper<Long> begin,
+        ArrayWrapper<Long> end,
+        String runFile,
+        String output,
+        InputBuffer inputBuff,
+        OutputBuffer outputBuff)
+        throws FileNotFoundException,
+        IOException {
+
+        // Required permanent variables
+        File temp = new File("tempRun.bin");
+        temp.delete();
+        String runFile2 = "tempRun.bin";
+        inputBuff.changeFile(new RandomAccessFile(runFile, "r"));
+        outputBuff.changeFile(new RandomAccessFile(runFile2, "rw"));
+
+        // Check if begin or end are already sorted, if so no merge needs to be
+        // done and can copy into output
+        if (end.get().length < 2 || end.get()[1] == null) {
+            outputBuff.changeFile(new RandomAccessFile(output, "rw"));
+            this.printToFile(inputBuff, outputBuff);
+            outputBuff.close();
+            return;
+        }
+
+        // Each iteration means a new pass
+        for (int pass = 0; begin.get()[1] != null; pass++) {
+
+            // Initializing and reseting variables from pass to pass
+            Long[] newBegin = new Long[begin.get().length];
+            Long[] newEnd = new Long[end.get().length];
+            int runCount = 0;
+
+            // Cycles between 8 runs at a time
+            for (int i = 0; i < begin.get().length && begin
+                .get()[i] != null; i += 8) {
+
+                int processedBlocks = 0;
+
+                // Building beginning array
+                if (runCount == 0) {
+                    newBegin[0] = 0L;
+                }
+                else {
+                    newBegin[runCount] = newEnd[runCount - 1];
+                }
+
+                // Inserts 1-8 initial run elements into heap
+                for (int n = i; n < begin.get().length && begin.get()[n] != null
+                    && n - i != 8; n++) {
+                    inputBuff.seek(begin.get()[n]);
+                    heap.insert(inputBuff.getData(), n);
+                }
+
+                // Actual output, insert done here
+                while (heap.heapSize() != 0) {
+
+                    int id = heap.removeMin(outputBuff);
+                    System.out.println("Value: " + outputBuff.getKey());
+                    begin.setValue(id, begin.get()[id] += 8192);
+
+                    // If run is not finished, insert another block from run
+                    if (begin.get()[id] < end.get()[id]) {
+                        inputBuff.seek(begin.get()[id]);
+                        heap.insert(inputBuff.getData(), id);
+                    }
+
+                    // Output run block to file
+                    outputBuff.flush();
+                    processedBlocks++;
+                }
+
+                // All runs done, computing runEnd
+                if (runCount == 0) {
+                    newEnd[0] = (long)(processedBlocks << 13);
+                }
+                else {
+                    newEnd[runCount] = newEnd[runCount - 1]
+                        + (long)(processedBlocks << 13);
+                }
+
+                // Building
+            }
+
+            // End of current pass, set arrays up and runfile for next pass
+            begin.wrap(newBegin);
+            end.wrap(newEnd);
+            outputBuff.close();
+
+            if ((pass & 0x1) != 1) {
+                outputBuff.changeFile(new RandomAccessFile(runFile, "rw"));
+                inputBuff.changeFile(new RandomAccessFile(runFile2, "r"));
+            }
+            else {
+                outputBuff.changeFile(new RandomAccessFile(runFile2, "rw"));
+                inputBuff.changeFile(new RandomAccessFile(runFile, "r"));
+            }
+        }
+
+        // At this point file should be sorted correctly, copies to output
+        outputBuff.changeFile(new RandomAccessFile(output, "rw"));
+
+        this.printToFile(inputBuff, outputBuff);
+    }
+
+
+    /**
+     * @throws IOException
+     * 
+     */
+    private void printToFile(InputBuffer inputBuff, OutputBuffer outputBuff)
+        throws IOException {
+        while (!inputBuff.endOfFile()) {
+            outputBuff.setData(inputBuff.getData());
+            System.out.println("Flushed: " + outputBuff.getKey());
+            outputBuff.flush();
+            inputBuff.nextBlock();
+        }
+
+        // Last block not caught in loop
+        outputBuff.setData(inputBuff.getData());
+        System.out.println("Flushed: " + outputBuff.getKey());
+        outputBuff.flush();
+
+    }
 
 
     /**
@@ -832,6 +1019,7 @@ public class MainBufferTest extends TestCase {
         while (!input.endOfFile() && !validation.endOfFile()) {
             inputData.setData(input.getData());
             valiData.setData(validation.getData());
+            System.out.println(valiData.getKey() + " vs " + inputData.getKey());
             assertEquals(0, inputData.compareTo(valiData));
 
             input.nextBlock();

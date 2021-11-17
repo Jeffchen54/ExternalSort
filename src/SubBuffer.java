@@ -1,234 +1,240 @@
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
-// On my honor:
-//
-// - I have not used source code obtained from another student,
-// or any other unauthorized source, either modified or
-// unmodified.
-//
-// - All source code and documentation used in my program is
-// either my original work, or was derived by me from the
-// source code published in the textbook for this course.
-//
-// - I have not discussed coding details about this project with
-// anyone other than my partner (in the case of a joint
-// submission), instructor, ACM/UPE tutors or the TAs assigned
-// to this course. I understand that I may discuss the concepts
-// of this program with other students, and that another student
-// may help me debug my program so long as neither of us writes
-// anything during the discussion or modifies any computer file
-// during the discussion. I have violated neither the spirit nor
-// letter of this restriction. - JC
+public class SubBuffer {
 
-// Java Doc ------------------------------------------------------------------
-/**
- * Sub Buffer to be used as buffer for main buffer, stores a copy of a given
- * block, can compare the key section of that block with other sub buffers,
- * return, flush, and bring in new data.
- * 
- * @author chenj (chenjeff4840)
- * @version 11.1.2021
- */
-public class SubBuffer implements Comparable<SubBuffer> {
-
-    // Fields -----------------------------------------------------------
-    private byte[] data;
-    private ByteBuffer buffer;
-    private boolean flushed;
-    private int id;
-
-    // Constructor -------------------------------------------------------
-
-    /**
-     * Initializes fields. Copies the first 8192 array blocks from src. If
-     * the src is not a proper block, it will not be copied and flushed
-     * will be false. Flush will be true otherwise.
-     * 
-     * @param src
-     *            Array to be copied
-     * @precondition src != null
-     */
+    private Record[] heap;
+    private ByteBuffer record;
+    private int elements;
+    private int size;
+    
+    @SuppressWarnings("static-access")
     public SubBuffer(byte[] src) {
-        data = new byte[8192];
-
-        if (this.isBlock(src)) {
-            flushed = false;
+        size = 512;
+        record.wrap(src);
+        
+        for (int i = 0; i < 512; i++) {
+            byte[] b = new byte[16];
+            record.get(b);
+            heap[i] = new Record(b);
         }
-        else {
-            flushed = true;
-        }
-
-        this.setData(src);
-        buffer = ByteBuffer.wrap(data);
-        id = -1;
+        buildheap();
+        elements = 512;
     }
-
-
+    
     /**
-     * Initializes fields with no data, flushed set to true
-     */
-    public SubBuffer() {
-        data = new byte[8192];
-        flushed = true;
-        buffer = ByteBuffer.wrap(data);
-        id = -1;
-    }
-
-    // Functions -----------------------------------------------------------
-
-
-    /**
-     * Returns the block's key, returns -1 if flushed
-     * 
-     * @return key, -1 if flushed
-     */
-    public double getKey() {
-        // Conditional
-        if (isFlushed()) {
-            return -1;
-        }
-
-        // Creating temp key buffer and incrementing to key pos in buffer
-        byte[] temp = new byte[8];
-        buffer.position(8);
-        buffer.get(temp);
-
-        // Grabbing key as double and reset to beginning of buffer
-        double toReturn = this.convertToDouble(temp);
-        buffer.rewind();
-        return toReturn;
-    }
-
-
-    /**
-     * Returns shallow copy of data in buffer. Afterwards, sets flushed on.
-     * 
-     * @return shallow copy of data, null if flushed
-     * @throws IOException
-     * @throws Exception
-     */
-    public byte[] flush() throws IOException {
-        if (this.isFlushed()) {
-            return null;
-        }
-
-        flushed = true;
-        id = -1;
-        return data;
-    }
-
-
-    /**
-     * Copies src to buffer. Turns flushed off. If src is not a valid block,
-     * do nothing.
-     * 
+     * this function insert a whole block into 
+     * the subbuffer. 
+     * If it is not empty, it return false
+     * if it is empty, take in the byte[] and 
+     * breakup to 512 records make the heap
      * @param src
-     *            data to copy to buffer
-     * @precondition src != null
+     * @return
      */
-    public void setData(byte[] src) {
-        if (this.isBlock(src)) {
-            System.arraycopy(src, 0, data, 0, 8192);
-            flushed = false;
+    public boolean insertBlock(byte[] src) {
+        if (elements != 0) {
+            return false;
         }
+        record.wrap(src);
+        for (int i = 0; i < 512; i++) {
+            byte[] b = new byte[16];
+            record.get(b);
+            heap[i] = new Record(b);
+        }
+        buildheap();
+        elements = 512;
+        return true;
     }
-
-
+    
     /**
-     * Returns shallow copy of buffer's data
-     * 
-     * @return shallow copy of buffer's data, null if flushed
+     * return the smallest key not remove it
+     * @return
      */
-    public byte[] getData() {
-        if (this.isFlushed()) {
+    public double getRt() {
+        return heap[0].getKey();
+    }
+    
+    /**
+     * return the smallest value of the rt
+     * remove the rt to the last position
+     * and decrement the heap
+     * 
+     * @return the record that has been removed
+     */
+    public Record removeRt() {
+        if (elements == 0) {
             return null;
         }
-        return data;
+        Record rec = heap[0];
+        swap(0, --elements);
+        siftdown(0);
+        
+        return rec;
     }
-
-
+    
     /**
-     * Checks if buffer has been flushed
-     * 
-     * @return true if flushed, false otherwised
+     * return the activated elements
+     * @return an integer
      */
-    public boolean isFlushed() {
-        return flushed == true;
+    public int getActiveElements() {
+        return elements;
     }
-
-
+    
+    
     /**
-     * Compares this and obj's key. If:
+     * Inserts key into heap. Will fail if heap is full. Automatically builds
+     * min heap. key ID defaults to SubBuffer flush value.
      * 
-     * this.key == obj.key -> returns 0
-     * this.key < obj.key || obj == null -> returns -1
-     * this.key > obj.key -> return 1
-     * 
-     * 2 Flushed buffers will return 0 since default key value is -1
-     * 
+     * @param key
+     *            Value into insert into heap
+     */
+    public void insert(Record rec) {
+        if (elements >= size) {
+            System.out.println("Heap is full");
+            return;
+        }
+        int curr = elements++;
+        heap[curr] = rec;
+        // Start at end of heap
+        // Now sift up until curr's parent's key <= curr's key
+        while ((curr != 0) && (heap[curr].compareTo(heap[parent(curr)]) <= 0)) {
+            swap(curr, parent(curr));
+            curr = parent(curr);
+        }
+    }
+    
+    
+    /**
+     *  compare the smallest key in this subBuffer with
+     *  the smallest key in another subBuffer
      * @param obj
-     *            SubBuffer to compare to this
-     * @return 1 if equal, -1 if less, 1 if greater.
+     * @return
      */
-    @Override
     public int compareTo(SubBuffer obj) {
         if (obj == null) {
             return -1;
         }
-
         if (obj == this) {
             return 0;
         }
-
-        if (this.getKey() == obj.getKey()) {
+        if (getRt() == obj.getRt()) {
             return 0;
         }
-
-        if (this.getKey() < obj.getKey()) {
+        if (getRt() < obj.getRt()) {
             return -1;
         }
-
         return 1;
+    }
+    
+    
+    /**
+     * Builds heap from rt to the # of elements in the heap.
+     */
+    private void buildheap() {
+        for (int i = elements / 2 - 1; i >= 0; i--) {
+            siftdown(i);
+        }
+    }
+    
+    
+    /**
+     * Puts element at pos in heap into correct minheap position
+     * 
+     * @param pos
+     *            Position in heap to put into correct minheap position
+     */
+    private void siftdown(int pos) {
+        if ((pos < 0) || (pos >= elements)) {
+            return;
+        } // Illegal position
+        while (!isLeaf(pos)) {
+            int j = leftchild(pos);
+            if ((j < (elements - 1)) && (heap[j].compareTo(heap[j + 1]) >= 0)) {
+                j++; // j is now index of child with greater value
+            }
+            if (heap[pos].compareTo(heap[j]) < 0) {
+                return;
+            }
+            swap(pos, j);
+            pos = j; // Move down
+        }
+    }
+    
+    
+ // Helpers ------------------------------------------------------------
 
+
+    /**
+     * Swaps heap elements
+     * 
+     * @param p1
+     *            heap element position to swap with p2
+     * @param p2
+     *            heap element position to swap with p1
+     * 
+     */
+    private void swap(int p1, int p2) {
+        Record temp = heap[p1];
+        heap[p1] = heap[p2];
+        heap[p2] = temp;
     }
 
 
     /**
-     * Sets buffer id
+     * Checks if pos position in heap is a leaf
      * 
-     * @param src
-     *            new id
+     * @param pos
+     *            Position in heap
+     * @return true if pos is leaf
      */
-    public void setID(int src) {
-        id = src;
+    private boolean isLeaf(int pos) {
+        return (pos >= elements / 2) && (pos < elements);
     }
 
 
     /**
-     * Returns id
+     * Gets parent's leftchild position
      * 
-     * @return id, -1 if not set or flushed
+     * @param pos
+     *            Position in heap
+     * @return true if pos is left child
      */
-    public int getID() {
-        return id;
+    private int leftchild(int pos) {
+        if (pos >= elements / 2) {
+            return -1;
+        }
+        return 2 * pos + 1;
     }
-
-    // Helpers -----------------------------------------------------------
 
 
     /**
-     * Checks if the block is a valid block.
+     * Checks if pos position in heap is a right child
      * 
-     * @param block
-     *            Block to check for validity.
-     * @return true if block is a valid block, false otherwise
+     * @param pos
+     *            Position in heap
+     * @return true if pos is right child
      */
-    private boolean isBlock(byte[] block) {
-        return block.length == 8192;
+    private int rightchild(int pos) {
+        if (pos >= (pos - 1) / 2) {
+            return -1;
+        }
+        return 2 * pos + 2;
     }
 
 
+    /**
+     * Returns position for parent
+     * 
+     * @param pos
+     *            Position in heap
+     * @return parent position of pos
+     */
+    private int parent(int pos) {
+        if (pos <= 0) {
+            return -1;
+        }
+        return (pos - 1) / 2;
+    }
+    
     /**
      * Converts array to double
      * 
@@ -240,5 +246,4 @@ public class SubBuffer implements Comparable<SubBuffer> {
         ByteBuffer buffer = ByteBuffer.wrap(array);
         return buffer.getDouble();
     }
-
 }

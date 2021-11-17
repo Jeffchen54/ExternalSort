@@ -264,6 +264,14 @@ public class InputBuffer {
     }
 
 
+    /**
+     * Returns the file
+     */
+    public RandomAccessFile getFile() {
+        return file;
+    }
+
+
     // Helpers --------------------------------------------------------------
     /**
      * Converts array to long

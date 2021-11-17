@@ -6,7 +6,8 @@ public class SubBuffer {
     private ByteBuffer record;
     private int elements;
     private int size;
-    
+    private int runNum;
+
     @SuppressWarnings("static-access")
     public SubBuffer(byte[] src) {
         size = 512;
@@ -19,14 +20,17 @@ public class SubBuffer {
         }
         elements = 512;
         buildheap();
+        runNum = 0;
     }
-    
+
+
     /**
-     * this function insert a whole block into 
-     * the subbuffer. 
+     * this function insert a whole block into
+     * the subbuffer.
      * If it is not empty, it return false
-     * if it is empty, take in the byte[] and 
+     * if it is empty, take in the byte[] and
      * breakup to 512 records make the heap
+     * 
      * @param src
      * @return
      */
@@ -42,11 +46,14 @@ public class SubBuffer {
         }
         elements = 512;
         buildheap();
+        this.runNum = -1;
         return true;
     }
-    
+
+
     /**
      * return the smallest key not remove it
+     * 
      * @return
      */
     public Record getRt() {
@@ -55,7 +62,8 @@ public class SubBuffer {
         }
         return heap[0];
     }
-    
+
+
     /**
      * return the smallest value of the rt
      * remove the rt to the last position
@@ -70,23 +78,25 @@ public class SubBuffer {
         Record rec = heap[0];
         swap(0, --elements);
         siftdown(0);
-        
+
         return rec;
     }
-    
+
+
     /**
      * return the activated elements
+     * 
      * @return an integer
      */
     public int getActiveElements() {
         return elements;
     }
-    
-    
-    
+
+
     /**
-     *  compare the smallest key in this subBuffer with
-     *  the smallest key in another subBuffer
+     * compare the smallest key in this subBuffer with
+     * the smallest key in another subBuffer
+     * 
      * @param obj
      * @return
      */
@@ -105,8 +115,24 @@ public class SubBuffer {
         }
         return 1;
     }
-    
-    
+
+
+    /**
+     * Returns the runNum
+     */
+    public int getRunNum() {
+        return runNum;
+    }
+
+
+    /**
+     * Sets the runNum
+     */
+    public void setRunNum(int newRunNum) {
+        this.runNum = newRunNum;
+    }
+
+
     /**
      * Builds heap from rt to the # of elements in the heap.
      */
@@ -115,8 +141,8 @@ public class SubBuffer {
             siftdown(i);
         }
     }
-    
-    
+
+
     /**
      * Puts element at pos in heap into correct minheap position
      * 
@@ -139,9 +165,8 @@ public class SubBuffer {
             pos = j; // Move down
         }
     }
-    
-    
- // Helpers ------------------------------------------------------------
+
+    // Helpers ------------------------------------------------------------
 
 
     /**
@@ -215,7 +240,8 @@ public class SubBuffer {
         }
         return (pos - 1) / 2;
     }
-    
+
+
     /**
      * Converts array to double
      * 

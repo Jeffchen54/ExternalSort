@@ -58,6 +58,8 @@ public class OutputBuffer {
      * Returns shallow copy of data in buffer, writes this data to output file.
      * Resets buffer position to 0 which can be written to with new data.
      * 
+     * Will always flush 8192 bytes of data to the output file
+     * 
      * @return shallow copy of data
      */
     public byte[] flush() throws IOException {

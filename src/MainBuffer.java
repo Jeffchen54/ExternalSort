@@ -44,9 +44,6 @@ public class MainBuffer {
         elements = 0;
         size = 8;
 
-        for (int i = 0; i < heap.length; i++) {
-            heap[i] = new SubBuffer();
-        }
     }
 
     // Functions ------------------------------------------------------------
@@ -65,7 +62,8 @@ public class MainBuffer {
             return;
         }
         int curr = elements++;
-        heap[curr].setData(key);
+        heap[curr].insertBlock(key);
+
         // Start at end of heap
         // Now sift up until curr's parent's key <= curr's key
         while ((curr != 0) && (heap[curr].compareTo(heap[parent(curr)]) <= 0)) {
@@ -82,14 +80,14 @@ public class MainBuffer {
      * @param key
      *            Value into insert into heap
      */
-    public void insert(byte[] key, int id) {
+    public void insert(byte[] key, int runNum) {
         if (elements >= size) {
             System.out.println("Heap is full");
             return;
         }
         int curr = elements++;
-        heap[curr].setData(key);
-        heap[curr].setID(id);
+        heap[curr].insertBlock(key);
+        heap[curr].setRunNum(runNum);
 
         // Start at end of heap
         // Now sift up until curr's parent's key <= curr's key
@@ -101,110 +99,47 @@ public class MainBuffer {
 
 
     /**
-     * Returns min value. Fails if heap is empty. Automatically builds min heap.
+     * Returns min record and heapifies the heap if needed. If heap[0] is
+     * empty after being removed from, it is shifted to the end of the
+     * heap and disconnected.
      * 
      * @return min value data, null if fails.
      */
-    public byte[] removeMin() throws IOException {
+    public Record removeMin() throws IOException {
         if (elements == 0) {
             return null;
         } // Removing from empty heap
-        swap(0, --elements); // Swap min with last value
-        siftdown(0); // Put new heap root val in correct place
-        return heap[elements].getData();
+
+        Record toReturn = heap[0].removeRt();
+
+        if (heap[0].getActiveElements() == 0) {
+            swap(0, --elements); // Swap min with last value
+            siftdown(0); // Put new heap root val in correct place
+        }
+
+        this.siftdown(0);
+        return toReturn;
     }
 
 
     /**
-     * Saves shallow copy of min value to dest. Returns ID of the min value.
-     * Fails if heap is empty. Automatically builds min heap.
+     * Saves shallow copy of min value to dest. Returns RunNum of the
+     * min value. Fails if heap is empty. Automatically builds min heap.
      * 
      * @param dest
-     *            Destination to store min value, null if fails.
-     *            Used as a wrapper, does not use extra space.
+     *            Destination to store min value. Does not store a new
+     *            value if this function fails.
      * @return ID of min key, -1 if fails
      */
     public int removeMin(OutputBuffer dest) throws IOException {
+        int runNum = heap[0].getRunNum();
+
         if (elements == 0) {
-            dest.setData(null);
             return -1;
         } // Removing from empty heap
-        swap(0, --elements); // Swap min with last value
-        siftdown(0); // Put new heap root val in correct place
-        int id = heap[elements].getID();
-        dest.setData(heap[elements].flush());
-        return id;
-    }
-
-    /**
-     * Returns min value. Fails if heap is empty. Automatically builds min heap.
-     * 
-     * @return min value data, null if fails.
-     */
-    public byte[] flushMin() throws IOException {
-        if (elements == 0) {
-            return null;
-        } // Removing from empty heap
-        swap(0, --elements); // Swap min with last value
-        siftdown(0); // Put new heap root val in correct place
-        return heap[elements].flush();
-    }
-
-
-    /**
-     * Initiates 1 cycle of ReplacementSelection.
-     * 
-     * Will not do anything if heapSize() is 0. Removes smallest value,
-     * sets compare's data to it. Afterwards, compares the removed smallest
-     * value to key.
-     * 
-     * If key >= smallest value, replace smallest val's position in heap with
-     * key. Shift down to make minheap.
-     * 
-     * If key < smallest value, replace smallest val's position in heap with
-     * key. Swap key with current largest value in heap. Heap size decremented.
-     * Shift down largest value to make minheap.
-     * 
-     * Notes:
-     * - Call insert(byte[]) to insert initial RS elements
-     * - Call heapSize() to get current heap size
-     * - Call reactivateHeap() to reactivate all keys < smallest value in heap.
-     * - Call replacementSelection(null, OutputBuffer) to remove smallest
-     * value without adding new values.
-     * 
-     * @param key
-     *            Block to insert into heap. Can be null.
-     * @param compare
-     *            Output buffer storing value that was replaced.
-     * @throws IOException
-     */
-    public void replacementSelection(byte[] key, OutputBuffer compare)
-        throws IOException {
-        if (elements == 0) {
-            return;
-        }
-
-        // No more input values left
-        if (key == null) {
-            compare.setData(flushMin());
-        }
-        // More input values
-        else {
-            // Removing lowest value, setting rt to key
-            compare.setData(heap[0].getData());
-            heap[0].setData(key);
-
-            // RS checks on key and rt
-            // If key is greater or equal, just insert to rt and shift
-            if (heap[0].compareTo(compare) >= 0) {
-                siftdown(0); // Put new heap root val in correct place
-            }
-            // Ifkey is less, swap with last element, decrement, and shift
-            else {
-                swap(0, --elements); // Swap maximum with last value
-                siftdown(0); // Put new heap root val in correct place
-            }
-        }
+        Record removedMin = this.removeMin();
+        dest.insertRecord(removedMin);
+        return runNum;
     }
 
 
@@ -220,12 +155,12 @@ public class MainBuffer {
 
     /**
      * Reactivates all inactive heap elements. Does not activate heap elements
-     * that have not yet been inserted to.
+     * that do not have any data.
      */
     public void reactivateHeap() {
         int livePosition = 0;
         for (int i = 0; i < size; i++) {
-            if (!heap[i].isFlushed()) {
+            if (heap[i] != null && heap[0].getActiveElements() != 0) {
                 this.swap(i, livePosition);
                 livePosition++;
             }

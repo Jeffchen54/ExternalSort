@@ -7,15 +7,15 @@ public class BufferControllerTest extends student.TestCase {
     private BufferController bc;
     
     public void setUp() throws IOException {
-        bc = new BufferController("SampleSort1250B.bin", "BCTEST.bin");
+        bc = new BufferController("SampleSort32B.bin", "BCTEST32.bin");
     }
     
     
     public void testFlow() throws IOException {
-        //bc.run();
-        getKey("SampleSort1250B.bin");
+        bc.run();
+        getKey("SampleSort32B.bin");
         System.out.println("this is result after run---------");
-        getKey("BCTEST.bin");
+        getKey("BCTEST32.bin");
         System.out.println("end of the doc");
     }
     

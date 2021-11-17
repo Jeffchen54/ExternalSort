@@ -17,7 +17,7 @@ public class BufferController {
     
     private double key;
     // out put to a single run file 
-    public BufferController(String infile, String outFile) 
+    public BufferController(String infile, String outFile)  // outFile will be the firstRun in merge
         throws FileNotFoundException, IOException {
         RandomAccessFile inputFile = new RandomAccessFile(infile, "r");
         in = new InputBuffer(inputFile);
@@ -61,7 +61,9 @@ public class BufferController {
             System.out.print(startPos[i] + "   ");
             System.out.println(endPos[i]);
         }
+        
         closeFile();
+        
         
         
         
@@ -71,17 +73,87 @@ public class BufferController {
     /**
      * this is will merge sort once for the output file
      * another set of startPos and endPos track new   have origional
-     * @throws FileNotFoundException 
+     * @throws IOException 
      */
-    public void merge(RandomAccessFile input, RandomAccessFile finalFile) 
-        throws FileNotFoundException {
+    public void merge(RandomAccessFile firstRun, RandomAccessFile finalFile) 
+        throws IOException {
+        
+        in = new InputBuffer(firstRun);
+        RandomAccessFile mergeRun = new RandomAccessFile("runAlter", "rw");
+        OutputBuffer mergeOut = new OutputBuffer(mergeRun);
+        
         long[] startCp = startPos;
         long[] endCp = endPos;
-        for (int i = 0; i <= id; i++) {
-            long begin = startPos[i];
+        int idstart = 0;
+        int idend = Math.min(id, 8);
+        
+        mergeBuild(id, in);
+        
+        if (id >= 8) {
+            
+            
+            
+            
+            
+            
+            
         }
+        else if (id < 8) {
+            
+            
+            
+            
+            
+            
+            
+            
+        }
+        
+        //  write back to finalFile
+        
+        
+        
+        
+        
     }
 
+    
+    private void mergeBuild(int elements, InputBuffer inB) 
+        throws IOException {
+        
+        for (int i = 0; i < elements || i < 8; i++) {
+            in.seek(startPos[i]);
+            main.insert(in.getData());
+        }
+    }
+    
+    private boolean finishRun(int runAmount) {
+        for(int i = 0; i < runAmount; i++) {
+            if (startPos[i] != endPos[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    
+    
+    // shrink the arr, remove all the 0's in the array
+    public long[] shrinkArr(long[] arr) {
+        int size = 1;
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] != 0) {
+                size++;
+            }
+        }
+        long[] newArr = new long[size];
+        for (int k = 0; k < size; k++) {
+            newArr[k] = arr[k];
+        }
+        return newArr;
+    }
+    
+    
     /**
      * flow the block from in -> main -> out
      * @throws IOException
@@ -89,8 +161,10 @@ public class BufferController {
     private void flow() throws IOException {   
         main.replacementSelection(in.getData(), out);
         out.flush();
+        out.setID(id);
         end += 8192;
     }
+    
     
     /**
      * clear the main heap
@@ -98,6 +172,7 @@ public class BufferController {
     private void clearMain() throws IOException {
         while (main.heapSize() > 0) {
             main.replacementSelection(null, out);
+            out.setID(id);;
             out.flush();
             end += 8192;
         }
@@ -170,5 +245,10 @@ public class BufferController {
         }
         return maxRunCount;
     }  
+    
+    
+    private void compare(InputBuffer input) {
+        
+    }
 
 }

@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import org.junit.AfterClass;
 import student.TestCase;
 
 // On my honor:
@@ -45,6 +44,7 @@ public class OutputBufferTest extends TestCase {
      * @throws IOException
      */
     public void setUp() throws IOException {
+        this.cleanUp();
         buffer = new OutputBuffer(new RandomAccessFile(TESTING, "rw"));
     }
 
@@ -62,13 +62,51 @@ public class OutputBufferTest extends TestCase {
         // Inserting data into buffer then flushing
         for (int i = 0; i < 512; i++) {
             buffer.insertRecord(new Record(this.makeRecord(i, i + 1)));
+
         }
+
+        // This element is inserted when buffer is full, flushes buffer
+        buffer.insertRecord(record);
 
         // OutputBuffer should be flushed.
         buffer.close();
 
         InputBuffer input = new InputBuffer(new RandomAccessFile(TESTING, "r"));
 
+        for (int i = 0; i < 512; i++) {
+            assertEquals(i, input.nextLong(8));
+            assertEquals(i + 1, input.nextDouble(8), 0.1);
+        }
+
+        assertTrue(input.endOfFile());
+        input.close();
+        this.cleanUp();
+
+        // Inserting 2 blocks of data into buffer.
+        buffer = new OutputBuffer(new RandomAccessFile(TESTING, "rw"));
+        for (int i = 0; i < 512; i++) {
+            buffer.insertRecord(new Record(this.makeRecord(i, i + 1)));
+
+        }
+        for (int i = 0; i < 512; i++) {
+            buffer.insertRecord(new Record(this.makeRecord(i, i + 1)));
+
+        }
+
+        // This element is inserted when buffer is full, flushes buffer
+        buffer.flush();
+
+        // OutputBuffer should be flushed.
+        buffer.close();
+
+        input = new InputBuffer(new RandomAccessFile(TESTING, "r"));
+
+        for (int i = 0; i < 512; i++) {
+            assertEquals(i, input.nextLong(8));
+            assertEquals(i + 1, input.nextDouble(8), 0.1);
+        }
+        input.nextBlock();
+        
         for (int i = 0; i < 512; i++) {
             assertEquals(i, input.nextLong(8));
             assertEquals(i + 1, input.nextDouble(8), 0.1);
@@ -90,8 +128,7 @@ public class OutputBufferTest extends TestCase {
         // Read only changeFile
         IOException exception = null;
         Record record = new Record(this.makeRecord(0, 0));
-            
-        
+
         try {
             buffer.changeFile(new RandomAccessFile(TESTING, "r"));
             buffer.insertRecord(record);
@@ -102,10 +139,9 @@ public class OutputBufferTest extends TestCase {
         }
         assertNotNull(exception);
 
-        
         // Writing to one file, changing to another
         buffer.changeFile(new RandomAccessFile(TESTING, "rw"));
-        buffer.insertRecord(record);        
+        buffer.insertRecord(record);
         buffer.flush();
 
         // Changing
@@ -115,14 +151,34 @@ public class OutputBufferTest extends TestCase {
         record = new Record(this.makeRecord(1, 1));
         buffer.insertRecord(record);
         buffer.flush();
-        
+
         buffer.close();
 
         // Validation
-       RandomAccessFile test1 = new RandomAccessFile(TESTING, "rw");
-       RandomAccessFile test2 = new RandomAccessFile(TESTING2, "rw");
-       
-       
+        RandomAccessFile test1 = new RandomAccessFile(TESTING, "rw");
+        RandomAccessFile test2 = new RandomAccessFile(TESTING2, "rw");
+
+        byte[] data1 = new byte[8192];
+        byte[] data2 = new byte[8192];
+
+        test1.read(data1);
+        test2.read(data2);
+
+        ByteBuffer b1 = ByteBuffer.wrap(data1);
+        ByteBuffer b2 = ByteBuffer.wrap(data2);
+
+        assertEquals(0, b1.getLong());
+        assertEquals(0, b1.getDouble(), 0.1);
+
+        assertEquals(1, b2.getLong());
+        assertEquals(1, b2.getDouble(), 0.1);
+
+        assertEquals(8192, test1.length());
+        assertEquals(8192, test2.length());
+
+        test1.close();
+        test2.close();
+        this.cleanUp();
 
     }
 
@@ -171,8 +227,9 @@ public class OutputBufferTest extends TestCase {
         if (file.exists()) {
             file.delete();
         }
-
-        buffer.close();
+        if (buffer != null) {
+            buffer.close();
+        }
 
     }
 
@@ -202,5 +259,31 @@ public class OutputBufferTest extends TestCase {
         buffer.putDouble(key);
 
         return buffer.array();
+    }
+    
+    /**
+     * Tests getLastRecord()
+     * @throws IOException 
+     */
+    public void testGetLastRecord() throws IOException {
+        Record record = null;
+        
+        // Inserting data into buffer then flushing
+        for (int i = 0; i < 512; i++) {
+            record = new Record(this.makeRecord(i, i + 1));
+            buffer.insertRecord(record);
+            assertEquals(0, buffer.getLastRecord().compareTo(record));
+
+        }
+
+        // This element is inserted when buffer is full, flushes buffer
+        buffer.flush();
+        assertEquals(0, buffer.getLastRecord().compareTo(record));
+        
+        buffer.close();
+        this.cleanUp();
+
+        
+        
     }
 }

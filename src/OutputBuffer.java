@@ -56,7 +56,7 @@ public class OutputBuffer {
 
     /**
      * Returns shallow copy of data in buffer, writes this data to output file.
-     * Resets buffer position to 0 which can be written to with new data. 
+     * Resets buffer position to 0 which can be written to with new data.
      * 
      * @return shallow copy of data
      */
@@ -64,7 +64,7 @@ public class OutputBuffer {
         output.write(data);
         buffer.rewind(); // This "clears" the array, favorable instead of
                          // Setting arr contents to 0.
-        
+
         return data;
     }
 
@@ -77,7 +77,7 @@ public class OutputBuffer {
      * @throws IOException
      */
     public void changeFile(RandomAccessFile file) throws IOException {
-        output.close();
+        this.close();
         output = file;
     }
 
@@ -85,7 +85,8 @@ public class OutputBuffer {
     /**
      * Inserts a record into the OutputBuffer, automatically flushed when the
      * Buffer is full
-     * @throws IOException 
+     * 
+     * @throws IOException
      */
     public void insertRecord(Record record) throws IOException {
 
@@ -102,7 +103,7 @@ public class OutputBuffer {
      * Returns the last record inserted into the buffer
      * 
      * @return last record inserted into buffer, null if output file
-     * is closed. 
+     *         is closed.
      */
     public Record getLastRecord() {
         return cache;
@@ -110,7 +111,7 @@ public class OutputBuffer {
 
 
     /**
-     * Closes the output, cache is reset. 
+     * Closes the output, cache is reset.
      * 
      * @throws IOException
      */

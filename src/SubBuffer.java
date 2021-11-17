@@ -10,15 +10,15 @@ public class SubBuffer {
     @SuppressWarnings("static-access")
     public SubBuffer(byte[] src) {
         size = 512;
-        record.wrap(src);
-        
+        record = ByteBuffer.wrap(src);
+        heap = new Record[512];
         for (int i = 0; i < 512; i++) {
             byte[] b = new byte[16];
             record.get(b);
             heap[i] = new Record(b);
         }
-        buildheap();
         elements = 512;
+        buildheap();
     }
     
     /**
@@ -34,14 +34,14 @@ public class SubBuffer {
         if (elements != 0) {
             return false;
         }
-        record.wrap(src);
+        record = ByteBuffer.wrap(src);
         for (int i = 0; i < 512; i++) {
             byte[] b = new byte[16];
             record.get(b);
             heap[i] = new Record(b);
         }
-        buildheap();
         elements = 512;
+        buildheap();
         return true;
     }
     
@@ -49,8 +49,11 @@ public class SubBuffer {
      * return the smallest key not remove it
      * @return
      */
-    public double getRt() {
-        return heap[0].getKey();
+    public Record getRt() {
+        if (elements == 0) {
+            return null;
+        }
+        return heap[0];
     }
     
     /**
@@ -80,28 +83,6 @@ public class SubBuffer {
     }
     
     
-    /**
-     * Inserts key into heap. Will fail if heap is full. Automatically builds
-     * min heap. key ID defaults to SubBuffer flush value.
-     * 
-     * @param key
-     *            Value into insert into heap
-     */
-    public void insert(Record rec) {
-        if (elements >= size) {
-            System.out.println("Heap is full");
-            return;
-        }
-        int curr = elements++;
-        heap[curr] = rec;
-        // Start at end of heap
-        // Now sift up until curr's parent's key <= curr's key
-        while ((curr != 0) && (heap[curr].compareTo(heap[parent(curr)]) <= 0)) {
-            swap(curr, parent(curr));
-            curr = parent(curr);
-        }
-    }
-    
     
     /**
      *  compare the smallest key in this subBuffer with
@@ -116,10 +97,10 @@ public class SubBuffer {
         if (obj == this) {
             return 0;
         }
-        if (getRt() == obj.getRt()) {
+        if (getRt().compareTo(obj.getRt()) == 0) {
             return 0;
         }
-        if (getRt() < obj.getRt()) {
+        if (getRt().compareTo(obj.getRt()) < 0) {
             return -1;
         }
         return 1;

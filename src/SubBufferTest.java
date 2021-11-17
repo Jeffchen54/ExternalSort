@@ -1,6 +1,7 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import student.TestCase;
 // On my honor:
 //
@@ -32,8 +33,7 @@ import student.TestCase;
 public class SubBufferTest extends TestCase {
 
     // Fields ---------------------------------------------------------------
-    private SubBuffer buffer;
-    private InputBuffer input;
+    private SubBuffer sub;
 
     // Setup ------------------------------------------------------------
     /**
@@ -43,188 +43,297 @@ public class SubBufferTest extends TestCase {
      * @throws FileNotFoundException
      */
     public void setUp() throws FileNotFoundException, IOException {
-        input = new InputBuffer(new RandomAccessFile("normalBlk.bin", "r"));
-        buffer = new SubBuffer();
+        
+    
     }
 
     // Tests ------------------------------------------------------------
-
-
     /**
-     * Tests setData() and constructors
-     * 
-     * @throws IOException
+     * test the getRt method
+     * with sorted block
      */
-    public void testSetData() throws IOException {
-        // Sets buffer data to a valid block
-        buffer.setData(input.getData());
-        assertTrue(input.endOfFile());
-        input.next(8);
-        double key = input.nextDouble(8);
-
-        // Check if the buffer returns the correct key, flushing buffer as well
-        assertEquals(7.25837957933813E-309, buffer.getKey(), 0.1);
-        assertEquals(key, buffer.getKey(), 0.1);
-        buffer.flush();
-        assertTrue(buffer.isFlushed());
-
-        // Setting buffer data to bad sized blocks, should pass since
-        // inputbuffer handles it
-        input.changeFile(new RandomAccessFile("TooBigBlock.bin", "r"));
-        buffer.setData(input.getData());
-        assertFalse(buffer.isFlushed());
-        input.changeFile(new RandomAccessFile("TooSmallBlock.bin", "r"));
-        buffer.setData(input.getData());
-        assertFalse(buffer.isFlushed());
-
-        // Doing the same as above but with constructor
-        // Sets buffer data to a valid block
-        buffer = new SubBuffer(input.getData());
-        assertTrue(input.endOfFile());
-
-        // Check if the buffer returns the correct key, flushing buffer as well
-        assertEquals(7.25837957933813E-309, buffer.getKey(), 0.1);
-        assertEquals(key, buffer.getKey(), 0.1);
-
-        // Setting buffer data to bad sized blocks, ensuring buffer still
-        // flushed
-        input.changeFile(new RandomAccessFile("TooBigBlock.bin", "r"));
-        buffer = new SubBuffer(input.getData());
-        assertFalse(buffer.isFlushed());
-        input.changeFile(new RandomAccessFile("TooSmallBlock.bin", "r"));
-        buffer = new SubBuffer(input.getData());
-        assertFalse(buffer.isFlushed());
-
-        // Setting input to sample input data and simulating rapid info transfer
-        input.changeFile(new RandomAccessFile("sampleInput16.bin", "r"));
-        int iterations = 0;
-
-        while (!input.endOfFile()) {
-            buffer.setData(input.getData());
-
-            input.next(8);
-            key = input.nextDouble(8);
-
-            assertEquals(key, buffer.getKey(), 0.1);
-            assertFalse(buffer.isFlushed());
-            iterations++;
-            input.nextBlock();
+    public void testGetRt() {
+        byte[] source = makeBlock(600, 40);
+        sub = new SubBuffer(source);
+        assertEquals(sub.getRt().getKey(), 40.0, 0);
+    }
+    
+    /**
+     * test the getRt method
+     * with a the smallest value(55.5) in the middle
+     */
+    public void testGetRt1() {
+        byte[] source = makeBlockRan(600, 80);
+        sub = new SubBuffer(source);
+        assertEquals(sub.getRt().getKey(), 55.5, 1);
+    }
+    
+    /**
+     * test the getRt method
+     * with reverse sorted
+     */
+    public void testGetRtRe() {
+        byte[] source = makeBlockReverse(600, 1000);
+        sub = new SubBuffer(source);
+        assertEquals(sub.getRt().getKey(), 1001, 1);
+    }
+    
+    /**
+     * test the getRt method
+     * with empty heap
+     */
+    public void testGetRtEmpty() {
+        byte[] source = makeBlockReverse(600, 1000);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 512; i++) {
+            sub.removeRt();
         }
-
-        // Last block skipped in loop
-        buffer.setData(input.getData());
-
-        input.next(8);
-        key = input.nextDouble(8);
-
-        assertEquals(key, buffer.getKey(), 0.1);
-        assertFalse(buffer.isFlushed());
-        iterations++;
-        assertEquals(16, iterations);
-
-        // Manually inputting bad sized buffer
-        buffer.flush();
-        assertTrue(buffer.isFlushed());
-
-        buffer.setData(new byte[8191]);
-        assertTrue(buffer.isFlushed());
-
-        buffer.setData(new byte[8193]);
-        assertTrue(buffer.isFlushed());
-
-        // w/ constructor
-        buffer = new SubBuffer(new byte[8191]);
-        assertTrue(buffer.isFlushed());
-        buffer = new SubBuffer(new byte[8193]);
-        assertTrue(buffer.isFlushed());
-        buffer = new SubBuffer(new byte[8192]);
-        assertFalse(buffer.isFlushed());
-
-        // Ensuring inserting bad blocks does not affect current data
-        buffer.setData(new byte[8191]);
-        assertFalse(buffer.isFlushed());
-
-        buffer.setData(new byte[8193]);
-        assertFalse(buffer.isFlushed());
-
+        assertNull(sub.getRt());
     }
-
+    
+    /**
+     * test the removeRt method
+     * with the sorted block
+     */
+    public void testRemoveRt() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        assertEquals(sub.getRt().getKey(), 80, 1);
+        assertEquals(sub.removeRt().getKey(), 80, 1);
+        assertEquals(sub.getRt().getKey(), 81, 1);
+    }
+    
+    /**
+     * test the removeRt method
+     * with the smallest value(55.5) in the middle
+     */
+    public void testRemoveRt1() {
+        byte[] source = makeBlockRan(600, 80);
+        sub = new SubBuffer(source);
+        assertEquals(sub.getRt().getKey(), 55.5, 1);
+        assertEquals(sub.removeRt().getKey(), 55.5, 1);
+        assertEquals(sub.getRt().getKey(), 80.0, 1);
+    }
+    
+    /**
+     * test the removeRt method
+     * with reverse sorted
+     */
+    public void testRemoveRtRE() {
+        byte[] source = makeBlockReverse(600, 1000);
+        sub = new SubBuffer(source);
+        assertEquals(sub.getRt().getKey(), 1001, 1);
+        assertEquals(sub.removeRt().getKey(), 1001, 1);
+        assertEquals(sub.getRt().getKey(), 1002, 1);
+    }
+    
+    /**
+     * test the removeRt method
+     * with empty heap
+     */
+    public void testRemoveRtEmpty() {
+        byte[] source = makeBlockReverse(600, 1000);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 512; i++) {
+            sub.removeRt();
+        }
+        assertNull(sub.removeRt());
+    }
+    
+    /**
+     * test get ActiveElemets
+     */
+    public void testGetActiveElements() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 50; i++) {
+            sub.removeRt();
+        }
+        assertEquals(sub.getActiveElements(), 462);
+    }
+    
+    /**
+     * test get ActiveElemets
+     * with empty heap
+     */
+    public void testGetActiveElementsEmpty() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 512; i++) {
+            sub.removeRt();
+        }
+        assertEquals(sub.getActiveElements(), 0);
+    }
+    
+    /**
+     * this test insertBlock with empty heap
+     */
+    public void testInsertBlockEmpty() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 512; i++) {
+            sub.removeRt();
+        }
+        assertTrue(sub.insertBlock(source));
+        assertEquals(sub.getRt().getKey(), 80, 0);
+    }
+    
+    /**
+     * this test insertBlock with non-empty heap
+     */
+    public void testInsertBlock() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 400; i++) {
+            sub.removeRt();
+        }
+        assertFalse(sub.insertBlock(source));
+        assertEquals(sub.getRt().getKey(), 480, 0);
+    }
+    
+    /**
+     * test compare to
+     */
+    public void testCompareTo() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        byte[] source1 = makeBlock(600, 80);
+        SubBuffer sub1 = new SubBuffer(source1);
+        assertEquals(sub.compareTo(sub1), 0);
+    }
+    /**
+     * test compare to
+     */
+    public void testCompareToSmaller() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        byte[] source1 = makeBlock(600, 100);
+        SubBuffer sub1 = new SubBuffer(source1);
+        assertEquals(sub.compareTo(sub1), -1);
+    }
+    /**
+     * test compare to
+     */
+    public void testCompareToLarger() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        byte[] source1 = makeBlock(600, 40);
+        SubBuffer sub1 = new SubBuffer(source1);
+        assertEquals(sub.compareTo(sub1), 1);
+    }
+    
+    /**
+     * this is to test if the heap sort correctly 
+     */
+    public void testSortCorrection() {
+        byte[] source = makeBlock(600, 80);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 511; i++) {
+            double first = sub.getRt().getKey();
+            sub.removeRt();
+            double second = sub.getRt().getKey();
+            assertTrue(first < second);
+        }
+    }
+    /**
+     * this is to test if the heap reverse sort correctly 
+     */
+    public void testSortCorrectionReverse() {
+        byte[] source = makeBlockReverse(600, 80);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 511; i++) {
+            double first = sub.getRt().getKey();
+            sub.removeRt();
+            double second = sub.getRt().getKey();
+            assertTrue(first < second);
+        }
+    }
+    /**
+     * this is to test if the heap randomly sort correctly 
+     */
+    public void testSortCorrectionRan() {
+        byte[] source = makeBlockRandom(600, 0);
+        sub = new SubBuffer(source);
+        for (int i = 0; i < 511; i++) {
+            double first = sub.getRt().getKey();
+            sub.removeRt();
+            double second = sub.getRt().getKey();
+            assertTrue(first < second);
+        }
+    }
+    
+    
+    /**
+     * Creates a block of size 8192 with first record first id at id and first
+     * key
+     * at key, additional records increment key and value by 1.
+     */
+    private byte[] makeBlock(long id, double key) {
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+        for (int i = 0; i < 512; i++) {
+            buffer.put(makeRecord(id + i, key + i));
+        }
+        return buffer.array();
+    }
+    
+    /**
+     * Creates a block of size 8192 with first record first id at id and first
+     * key
+     * at key, additional records increment key and value by 1.
+     */
+    private byte[] makeBlockRan(long id, double key) {
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+        for (int i = 0; i < 100; i++) {
+            buffer.put(makeRecord(id + i, key + i));
+        }
+        buffer.put(makeRecord(40, 55.5));
+        for (int i = 101; i < 512; i++) {
+            buffer.put(makeRecord(id + i, key + i));
+        }
+        return buffer.array();
+    }
+    /**
+     * Creates a block of size 8192 with first record first id at id and first
+     * key
+     * at key, additional records increment key and value by 1.
+     */
+    private byte[] makeBlockRandom(long id, double key) {
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+        for (int i = 0; i < 512; i++) {
+            if(i % 2 == 1) {
+                buffer.put(makeRecord(id + i, key + i));
+            }
+            else {
+                buffer.put(makeRecord(id + i, key + 1000 - i));
+            }
+        }
+        return buffer.array();
+    }
+    
+    /**
+     * Creates a block of size 8192 with first record first id at id and first
+     * key
+     * at key, additional records increment key and value by 1.
+     */
+    private byte[] makeBlockReverse(long id, double key) {
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+        for (int i = 512; i > 0; i--) {
+            buffer.put(makeRecord(id + i, key + i));
+        }
+        return buffer.array();
+    }
+    
 
     /**
-     * Tests flush() and isFlushed()
-     * @throws IOException 
+     * Creates a block of size 8192 with first record first id at id and first
+     * key
+     * at key, additional records increment key and value by 1.
      */
-    public void testFlushed() throws IOException {
-        // Checking empty flush
-        assertTrue(buffer.isFlushed());
-        assertNull(buffer.flush());
-        assertEquals(-1, buffer.getKey(), 0.1);
-        assertEquals(null, buffer.getData());
+    private byte[] makeRecord(long id, double key) {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.putLong(id);
+        buffer.putDouble(key);
 
-        // Checking valid flush
-        buffer.setData(input.getData());
-        assertFalse(buffer.isFlushed());
-        assertFalse(-1 == buffer.getKey());
-        assertNotNull(buffer.getData());
-        assertNotNull(buffer.flush());
-
-        // Checking double flush
-        assertNull(buffer.flush());
-        assertEquals(-1, buffer.getKey(), 0.1);
-        assertEquals(null, buffer.getData());
-        assertTrue(buffer.isFlushed());
-    }
-
-
-    /**
-     * Tests getKey()
-     * 
-     * @throws IOException
-     * @throws FileNotFoundException
-     */
-    public void testGetKey() throws FileNotFoundException, IOException {
-        // Checking empty getKey()
-        assertTrue(buffer.getKey() == -1);
-
-        // Checking double key returns same key
-        buffer.setData(input.getData());
-        assertFalse(buffer.getKey() == -1);
-        double key1 = buffer.getKey();
-        assertEquals(key1, buffer.getKey(), 0.1);
-
-        // Flushing data and comparing 1st key to new data
-        input.changeFile(new RandomAccessFile("64Blocks_Barnette.bin", "r"));
-        buffer.setData(input.getData());
-        assertFalse(key1 == buffer.getKey());
-    }
-
-
-    /**
-     * Tests compareTo()
-     * 
-     * @throws IOException
-     * @throws FileNotFoundException
-     */
-    public void testCompareTo() throws FileNotFoundException, IOException {
-        // Null
-        buffer.setData(input.getData());
-        assertEquals(-1, buffer.compareTo(null));
-
-        // Same
-        assertEquals(0, buffer.compareTo(buffer));
-
-        // Different but same data
-        SubBuffer other = new SubBuffer(input.getData());
-        assertEquals(0, buffer.compareTo(other));
-
-        // Different, greater
-        input.changeFile(new RandomAccessFile("BiggerBlockMaybe.bin", "r"));
-        other.setData(input.getData());
-        assertEquals(-1, buffer.compareTo(other));
-
-        // Different less
-        input.changeFile(new RandomAccessFile("SmallerBlockMaybe.bin", "r"));
-        other.setData(input.getData());
-        assertEquals(1, buffer.compareTo(other));
+        return buffer.array();
     }
 }

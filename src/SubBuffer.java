@@ -8,7 +8,7 @@ public class SubBuffer {
     private int size;
     private int runNum;
 
-    @SuppressWarnings("static-access")
+    
     public SubBuffer(byte[] src) {
         size = 512;
         record = ByteBuffer.wrap(src);

@@ -60,8 +60,10 @@ public class MainBufferTest extends TestCase {
 
     /**
      * Tests insert
+     * 
+     * @throws IOException
      */
-    public void testInsert() {
+    public void testInsert() throws IOException {
         assertEquals(0, heap.heapSize());
 
         // Inserts 8 blocks into the heap
@@ -83,6 +85,85 @@ public class MainBufferTest extends TestCase {
         assertEquals(8, heap.heapSize());
 
         // Verifying heap elements
+        for (double i = 0; i < 4096; i++) {
+            assertEquals(i, heap.removeMin().getKey(), 0.1);
+        }
+
+        assertEquals(0, heap.heapSize());
+
+        // Insert 8 blocks with alternating elements
+        // Inserts 8 blocks into the heap
+        heap.insert(this.makeAltBlock(0, 0));
+        assertEquals(1, heap.heapSize());
+        heap.insert(this.makeAltBlock(512, 512));
+        assertEquals(2, heap.heapSize());
+        heap.insert(this.makeAltBlock(1024, 1024));
+        assertEquals(3, heap.heapSize());
+        heap.insert(this.makeAltBlock(1536, 1536));
+        assertEquals(4, heap.heapSize());
+        heap.insert(this.makeAltBlock(2048, 2048));
+        assertEquals(5, heap.heapSize());
+        heap.insert(this.makeAltBlock(2560, 2560));
+        assertEquals(6, heap.heapSize());
+        heap.insert(this.makeAltBlock(3072, 3072));
+        assertEquals(7, heap.heapSize());
+        heap.insert(this.makeAltBlock(3584, 3584));
+        assertEquals(8, heap.heapSize());
+
+        // Verifying heap elements
+        for (double i = 0; i < 4096; i++) {
+            assertEquals(i, heap.removeMin().getKey(), 0.1);
+        }
+
+        // Insert 8 blocks with alternating elements
+        // Inserts 8 blocks into the heap
+        heap.insert(this.makeReverseBlock(3584, 3584));
+        assertEquals(1, heap.heapSize());
+        heap.insert(this.makeReverseBlock(3072, 3072));
+        assertEquals(2, heap.heapSize());
+        heap.insert(this.makeReverseBlock(2560, 2560));
+        assertEquals(3, heap.heapSize());
+        heap.insert(this.makeReverseBlock(2048, 2048));
+        assertEquals(4, heap.heapSize());
+        heap.insert(this.makeReverseBlock(1536, 1536));
+        assertEquals(5, heap.heapSize());
+        heap.insert(this.makeReverseBlock(1024, 1024));
+        assertEquals(6, heap.heapSize());
+        heap.insert(this.makeReverseBlock(512, 512));
+        assertEquals(7, heap.heapSize());
+        heap.insert(this.makeReverseBlock(0, 0));
+        assertEquals(8, heap.heapSize());
+
+        // Verifying heap elements
+        for (double i = 0; i < 4096; i++) {
+            assertEquals(i, heap.removeMin().getKey(), 0.1);
+        }
+
+        // Inserting 8 blocks, all with the same data
+        // Inserts 8 blocks into the heap
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(1, heap.heapSize());
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(2, heap.heapSize());
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(3, heap.heapSize());
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(4, heap.heapSize());
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(5, heap.heapSize());
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(6, heap.heapSize());
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(7, heap.heapSize());
+        heap.insert(this.makeBlock(0, 0));
+        assertEquals(8, heap.heapSize());
+
+        // Verifying heap elements
+        for (double i = 0; i < 512; i++) {
+            for (int n = 0; n < 8; n++) {
+                assertEquals(i, heap.removeMin().getKey(), 0.1);
+            }
+        }
     }
 
 
@@ -141,6 +222,40 @@ public class MainBufferTest extends TestCase {
         ByteBuffer buffer = ByteBuffer.allocate(8192);
         for (int i = 0; i < 512; i++) {
             buffer.put(makeRecord(id + i, key + i));
+        }
+        return buffer.array();
+    }
+
+
+    /**
+     * Creates a block of size 8192 with alternating bigger and smaller
+     * values.
+     */
+    private byte[] makeAltBlock(long id, double key) {
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+        for (int i = 0; i < 512; i++) {
+            if (i % 2 == 0) {
+                buffer.put(makeRecord(id + 1, key + 1));
+            }
+            else {
+                buffer.put(makeRecord(id - 1, key - 1));
+            }
+            id++;
+            key++;
+        }
+        return buffer.array();
+    }
+
+
+    /**
+     * Creates a block of size 8192 with alternating bigger and smaller
+     * values.
+     */
+    private byte[] makeReverseBlock(long id, double key) {
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+        for (int i = 511; i >= 0; i--) {
+            buffer.put(makeRecord(id + i, key + i));
+
         }
         return buffer.array();
     }

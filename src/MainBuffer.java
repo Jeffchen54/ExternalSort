@@ -40,9 +40,9 @@ public class MainBuffer {
      * Constructs empty heap, initializes fields.
      */
     public MainBuffer() {
-        heap = new SubBuffer[8];
         elements = 0;
         size = 8;
+        heap = new SubBuffer[size];
 
     }
 
@@ -56,14 +56,20 @@ public class MainBuffer {
      * @param key
      *            Value into insert into heap
      */
-    public void insert(byte[] key) {
+    public void insert(byte[] block) {
         if (elements >= size) {
             System.out.println("Heap is full");
             return;
         }
-        int curr = elements++;
-        heap[curr].insertBlock(key);
 
+        int curr = elements++;
+
+        if (heap[curr] == null) {
+            heap[curr] = new SubBuffer(block);
+        }
+        else {
+            heap[curr].insertBlock(block);
+        }
         // Start at end of heap
         // Now sift up until curr's parent's key <= curr's key
         while ((curr != 0) && (heap[curr].compareTo(heap[parent(curr)]) <= 0)) {
@@ -80,13 +86,20 @@ public class MainBuffer {
      * @param key
      *            Value into insert into heap
      */
-    public void insert(byte[] key, int runNum) {
+    public void insert(byte[] block, int runNum) {
         if (elements >= size) {
             System.out.println("Heap is full");
             return;
         }
         int curr = elements++;
-        heap[curr].insertBlock(key);
+
+        if (heap[curr] == null) {
+            heap[curr] = new SubBuffer(block);
+        }
+        else {
+            heap[curr].insertBlock(block);
+        }
+
         heap[curr].setRunNum(runNum);
 
         // Start at end of heap

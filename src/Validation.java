@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -38,25 +39,20 @@ public class Validation {
     }
 
     public boolean equal(InputBuffer rBuffer, InputBuffer vBuffer) throws IOException {
-        SubBuffer rsBuffer = new SubBuffer();
-        SubBuffer vsBuffer = new SubBuffer();
-        rBuffer.rewind();
-        vBuffer.rewind();
-        
-        
         while (!rBuffer.endOfFile() && !vBuffer.endOfFile()) {
-            rsBuffer.setData(rBuffer.getData());
-            vsBuffer.setData(vBuffer.getData()); 
-            System.out.println(rsBuffer.getKey());
-            System.out.println(vsBuffer.getKey());
-            
-            if (rsBuffer.compareTo(vsBuffer) != 0){
-                key = rBuffer.nextDouble(8);  // this is not working
-                return false;
+            ByteBuffer myRecord = ByteBuffer.wrap(rBuffer.getData());
+            ByteBuffer valRecord = ByteBuffer.wrap(vBuffer.getData());
+            for (int j = 0; j < 512; j++) {
+                myRecord.getLong();
+                double myDouble = myRecord.getDouble();
+                valRecord.getLong();
+                double valDouble = valRecord.getDouble();
+                if (myDouble != valDouble) {
+                    return false;
+                }
             }
             rBuffer.nextBlock();
             vBuffer.nextBlock();
-            num += 1;
         }
         return true;
     }

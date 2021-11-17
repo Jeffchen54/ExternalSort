@@ -63,17 +63,25 @@ public class MainBufferTest extends TestCase {
      */
     public void testInsert() {
         assertEquals(0, heap.heapSize());
-        
+
         // Inserts 8 blocks into the heap
         heap.insert(this.makeBlock(0, 0));
-        heap.insert(this.makeBlock(3, 3));
-        heap.insert(this.makeBlock(5, 5));
-        heap.insert(this.makeBlock(7, 7));
-        heap.insert(this.makeBlock(9, 9));
-        heap.insert(this.makeBlock(11, 11));
-        heap.insert(this.makeBlock(13, 13));
-        heap.insert(this.makeBlock(15, 15));
-        
+        assertEquals(1, heap.heapSize());
+        heap.insert(this.makeBlock(512, 512));
+        assertEquals(2, heap.heapSize());
+        heap.insert(this.makeBlock(1024, 1024));
+        assertEquals(3, heap.heapSize());
+        heap.insert(this.makeBlock(1536, 1536));
+        assertEquals(4, heap.heapSize());
+        heap.insert(this.makeBlock(2048, 2048));
+        assertEquals(5, heap.heapSize());
+        heap.insert(this.makeBlock(2560, 2560));
+        assertEquals(6, heap.heapSize());
+        heap.insert(this.makeBlock(3072, 3072));
+        assertEquals(7, heap.heapSize());
+        heap.insert(this.makeBlock(3584, 3584));
+        assertEquals(8, heap.heapSize());
+
         // Verifying heap elements
     }
 
@@ -136,5 +144,5 @@ public class MainBufferTest extends TestCase {
         }
         return buffer.array();
     }
-    
+
 }

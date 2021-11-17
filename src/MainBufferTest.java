@@ -59,12 +59,15 @@ public class MainBufferTest extends TestCase {
 
 
     /**
-     * Tests insert
+     * Tests insert and remove
      * 
      * @throws IOException
      */
-    public void testInsert() throws IOException {
+    public void testInsertRemove() throws IOException {
         assertEquals(0, heap.heapSize());
+
+        // Empty remove
+        assertNull(heap.removeMin());
 
         // Inserts 8 blocks into the heap
         heap.insert(this.makeBlock(0, 0));
@@ -168,33 +171,184 @@ public class MainBufferTest extends TestCase {
 
 
     /**
-     * Tests insert
+     * Tests insert and remove
+     * 
+     * @throws IOException
      */
-    public void testInsertRunNum() {
+    public void testInsertRemoveRunNum() throws IOException {
+        File file = new File("ToDelete.bin");
+        file.createNewFile();
+        output = new OutputBuffer(new RandomAccessFile("ToDelete.bin", "rw"));
 
-    }
+        // Empty remove
+        assertEquals(-1, heap.removeMin(output));
+        assertNull(output.getLastRecord());
 
+        // Inserting 8 blocks, all with the same data
+        // Inserts 8 blocks into the heap
+        heap.insert(this.makeBlock(100, 100), 8);
+        assertEquals(1, heap.heapSize());
+        assertEquals(8, heap.removeMin(null));
 
-    /**
-     * Tests remove
-     */
-    public void testRemove() {
+        heap.insert(this.makeBlock(50, 50));
+        assertEquals(2, heap.heapSize());
+        assertEquals(-1, heap.removeMin(null));
 
-    }
-
-
-    /**
-     * Tests remove
-     */
-    public void testRemoveRunNum() {
+        heap.removeMin(output);
+        assertEquals(51.0, output.getLastRecord().getKey(), 0.1);
+        output.close();
+        file.delete();
 
     }
 
 
     /**
      * Tests reactivateHeap()
+     * 
+     * @throws IOException
      */
-    public void testReactivateHeap() {
+    public void testReactivateHeap() throws IOException {
+        // Empty reactivate
+        heap.reactivateHeap();
+        assertNull(heap.removeMin());
+        assertEquals(0, heap.heapSize());
+
+        // Reactivating heap with one element
+        heap.insert(this.makeBlock(0, 0));
+        heap.reactivateHeap();
+        assertEquals(1, heap.heapSize());
+
+        // Reactivating when element has been removed
+        for (double i = 0; i < 512; i++) {
+            assertEquals(i, heap.removeMin().getKey(), 0.1);
+        }
+
+        heap.reactivateHeap();
+        assertEquals(0, heap.heapSize());
+
+        // Reactivating when Replacement selection removed a block
+
+        // Reactivating when replacement selection disconnected an inserted
+        // Block
+    }
+
+
+    /**
+     * Tests one cycle replacment selection
+     * 
+     * @throws IOException
+     */
+    public void testRS() throws IOException {
+        File file = new File("Temp.bin");
+        file.createNewFile();
+        output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
+
+        // Calling RS on empty heap
+        assertFalse(heap.replacementSelection(null, output));
+
+        // Doing Replacement selection with no new input
+        heap.insert(this.makeBlock(0, 0));
+        heap.insert(this.makeBlock(512, 512));
+        heap.insert(this.makeBlock(1024, 1024));
+        heap.insert(this.makeBlock(1536, 1536));
+
+        while (heap.heapSize() != 0) {
+            heap.replacementSelection(null, output);
+        }
+
+        output.flush();
+        output.close();
+
+        // Verifying
+        RandomAccessFile inputFile = new RandomAccessFile("Temp.bin", "r");
+
+        for (int i = 0; i < 2048; i++) {
+            assertEquals(i, inputFile.readLong());
+            assertEquals(i, inputFile.readDouble(), 0.1);
+        }
+
+        inputFile.close();
+        file.delete();
+        file.createNewFile();
+        output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
+
+        // Doing Replacement Selection with new input > last input value
+        heap.insert(this.makeBlock(0, 0));
+        heap.insert(this.makeBlock(512, 512));
+        heap.insert(this.makeBlock(1536, 1536));
+        byte[] inputBlock = this.makeBlock(1024, 1024);
+
+        for (int i = 0; i < 511; i++) {
+            assertFalse(heap.replacementSelection(inputBlock, output));
+        }
+
+        // This next one will insert the new inputBlock into RS
+        assertTrue(heap.replacementSelection(inputBlock, output));
+
+        while (heap.heapSize() != 0) {
+            heap.replacementSelection(null, output);
+        }
+        output.flush();
+        output.close();
+
+        // Validation
+        inputFile = new RandomAccessFile("Temp.bin", "r");
+
+        for (int i = 0; i < 2048; i++) {
+            assertEquals(i, inputFile.readLong());
+            assertEquals(i, inputFile.readDouble(), 0.1);
+        }
+
+        output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
+        inputFile.close();
+        file.delete();
+        file.createNewFile();
+
+        // Doing ReplacementSelection with new input < last input value
+
+        heap.insert(this.makeBlock(1024, 1024));
+        heap.insert(this.makeBlock(512, 512));
+        heap.insert(this.makeBlock(1536, 1536));
+        inputBlock = this.makeBlock(0, 0);
+
+        for (int i = 0; i < 511; i++) {
+            assertFalse(heap.replacementSelection(inputBlock, output));
+        }
+
+        // This next one will insert the new inputBlock into RS
+        assertTrue(heap.replacementSelection(inputBlock, output));
+
+        while (heap.heapSize() != 0) {
+            heap.replacementSelection(null, output);
+        }
+
+        // There should be a block that can be reactivated
+        assertEquals(0, heap.heapSize());
+        heap.reactivateHeap();
+        assertEquals(1, heap.heapSize());
+
+        while (heap.heapSize() != 0) {
+            heap.replacementSelection(null, output);
+        }
+
+        output.flush();
+        output.close();
+
+        // Validation
+        inputFile = new RandomAccessFile("Temp.bin", "r");
+
+        for (int i = 512; i < 2048; i++) {
+            assertEquals(i, inputFile.readLong());
+            assertEquals(i, inputFile.readDouble(), 0.1);
+        }
+        for (int i = 0; i < 512; i++) {
+            assertEquals(i, inputFile.readLong());
+            assertEquals(i, inputFile.readDouble(), 0.1);
+        }
+
+        inputFile.close();
+        file.delete();
+        file.createNewFile();
 
     }
 

@@ -20,7 +20,7 @@ public class SubBuffer {
         }
         elements = 512;
         buildheap();
-        runNum = 0;
+        runNum = -1;
     }
 
 

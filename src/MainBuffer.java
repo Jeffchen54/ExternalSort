@@ -145,13 +145,17 @@ public class MainBuffer {
      * @return ID of min key, -1 if fails
      */
     public int removeMin(OutputBuffer dest) throws IOException {
-        int runNum = heap[0].getRunNum();
-
         if (elements == 0) {
             return -1;
         } // Removing from empty heap
+
+        int runNum = heap[0].getRunNum();
+
         Record removedMin = this.removeMin();
-        dest.insertRecord(removedMin);
+
+        if (dest != null) {
+            dest.insertRecord(removedMin);
+        }
         return runNum;
     }
 
@@ -173,13 +177,82 @@ public class MainBuffer {
     public void reactivateHeap() {
         int livePosition = 0;
         for (int i = 0; i < size; i++) {
-            if (heap[i] != null && heap[0].getActiveElements() != 0) {
+            if (heap[i] != null && heap[i].getActiveElements() != 0) {
                 this.swap(i, livePosition);
                 livePosition++;
             }
         }
         elements = livePosition;
         buildheap();
+    }
+
+
+    /**
+     * Initiates 1 cycle of ReplacementSelection.
+     * 
+     * Will not do anything if heapSize() is 0. Removes smallest value,
+     * sets compare's data to it. Afterwards, compares the removed smallest
+     * value to key.
+     * 
+     * If key >= smallest value, replace smallest val's position in heap with
+     * key. Shift down to make minheap.
+     * 
+     * If key < smallest value, replace smallest val's position in heap with
+     * key. Swap key with current largest value in heap. Heap size decremented.
+     * Shift down largest value to make minheap.
+     * 
+     * Notes:
+     * - Call insert(byte[]) to insert initial RS elements
+     * - Call heapSize() to get current heap size
+     * - Call reactivateHeap() to reactivate all keys < smallest value in heap.
+     * - Call replacementSelection(null, OutputBuffer) to remove smallest
+     * value without adding new values.
+     * 
+     * @param key
+     *            Block to insert into heap. Can be null.
+     * @param compare
+     *            Output buffer storing value that was replaced.
+     * @throws IOException
+     */
+    public boolean replacementSelection(byte[] block, OutputBuffer compare)
+        throws IOException {
+        if (elements == 0) {
+            return false;
+        }
+        boolean inserted = false;
+
+        // No more input values left
+        if (block == null) {
+            compare.insertRecord(this.removeMin());
+        }
+        // More input values
+        else {
+            // Removing lowest value, setting rt to key
+            int before = elements;
+            compare.insertRecord(this.removeMin());
+
+            // Checking if rt is now empty
+            if (before != elements) {
+                // If rt is empty, we insert in another block
+                this.insert(block);
+
+                // We don't know where the block is after shift; however,
+                // we know if the rt is < than last removed record, we
+                // disconnect that block
+                if (heap[0].getRt().compareTo(compare.getLastRecord()) < 0) {
+                    elements--;
+                    this.swap(0, elements);
+                }
+                // Else, we siftdown which we also do if there is no new
+                // block inserted
+                inserted = true;
+            }
+        }
+
+        // We siftdown rt as a new record is at the front of the block
+        // even when a new block is inserted
+        this.siftdown(0);
+        return inserted;
     }
 
 

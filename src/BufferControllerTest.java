@@ -1,38 +1,53 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class BufferControllerTest extends student.TestCase {
 
     private BufferController bc;
-    
+    private final String OUTPUT = "sampleInput16.bin";
+
     public void setUp() throws IOException {
-        bc = new BufferController("SampleSort32B.bin", "BCTEST32.bin");
+        bc = new BufferController(OUTPUT);
     }
-    
-    
-    public void testFlow() throws IOException {
-        bc.run();
-        getKey("SampleSort32B.bin");
-        System.out.println("this is result after run---------");
-        getKey("BCTEST32.bin");
-        System.out.println("end of the doc");
-    }
-    
-    
-    
-    public void getKey(String fileName) throws IOException {
-        RandomAccessFile inputFile = new RandomAccessFile(fileName, "r");
-        InputBuffer in = new InputBuffer(inputFile);
-        while(!in.endOfFile()) {
-            in.next(8);
-            double key = in.nextDouble(8);
-            System.out.println(key);
-            in.nextBlock();
+
+
+    public void testReplacementSelection()
+        throws FileNotFoundException,
+        IOException {
+
+        // Testing a single run file of 16 blocks
+        bc.replacementSelection();
+
+        InputBuffer input = new InputBuffer(new RandomAccessFile(
+            "JeffChenRunUno.bin", "r"));
+        input.next(8);
+
+        Double prev = input.nextDouble(8);
+        input.rewind();
+
+        while (!input.endOfFile()) {
+            for (int i = 0; i < 206; i++) {
+                assertTrue(prev.compareTo(this.getKey(input)) <= 0);
+
+            }
+            input.nextBlock();
         }
-        in.next(8);
-        double key = in.nextDouble(8);
-        System.out.println(key);
+
+        // Testing a double run file
         
+        //
+
+        input.close();
+    }
+
+
+    public double getKey(InputBuffer input) {
+        input.mark();
+        input.next(8);
+        double toReturn = input.nextDouble(8);
+        input.reset();
+        return toReturn;
     }
 }

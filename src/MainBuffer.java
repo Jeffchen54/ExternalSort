@@ -257,6 +257,26 @@ public class MainBuffer {
 
 
     /**
+     * Continually performs replacment selection until block is inserted
+     * into the heap
+     * 
+     * @throws IOException
+     */
+    public void replacementSelectionCycle(byte[] block, OutputBuffer compare)
+        throws IOException {
+        if (elements == 0) {
+            return;
+        }
+        else {
+            while (!replacementSelection(block, compare)) {
+                // Continually removes from replacement selection
+                // until block is finally inserted into the heap.
+            }
+        }
+    }
+
+
+    /**
      * Builds heap from rt to the # of elements in the heap.
      */
     private void buildheap() {

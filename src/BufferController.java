@@ -86,12 +86,7 @@ public class BufferController {
         runfile2 = inputFileName;
 
         this.replacementSelection();
-        File a = new File(runfile1);
-
-        if (!a.exists()) {
-            throw new IOException();
-        }
-
+        
         //this.mergeSort();
         this.close();
     }
@@ -298,7 +293,7 @@ public class BufferController {
                 // in heap
                 // that are not flushed
                 runEnd[runID] = input.filePointer() - ((8 - heapRemain) << 13);
-
+                
                 // Incrementing runID
                 runID++;
 
@@ -378,11 +373,28 @@ public class BufferController {
      * 
      * @throws IOException
      */
-    private void close() throws IOException {
+    public void close() throws IOException {
         input.close();
         output.close();
 
-        this.cleanUp();
+        //this.cleanUp();
+    }
+    
+    /**
+     * Returns the run begin dimensions. Used for debugging purposes after
+     * replacement selection 
+     */
+    public Long[] getRunBegin() {
+        return runBeginDest.get();
+    }
+    
+    
+    /**
+     * Returns the run end dimensions. Used for debugging purposes after
+     * replacement selection 
+     */
+    public Long[] getRunEnd() {
+        return runEndDest.get();
     }
 
 

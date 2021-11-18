@@ -27,15 +27,20 @@ public class Validation {
 
         RandomAccessFile validation = new RandomAccessFile(answerFile, "r");
         InputBuffer vBuffer = new InputBuffer(validation);
+        
+        boolean same = false;
 
         if (equal(rBuffer, vBuffer)) {
             System.out.println("the output of your external sort is correct");
-            return true;
+            same = true;
         }
         else {
             System.out.println("you have error at the " + num + "th block, the key is " + key);
-            return false;
         }
+        
+        rBuffer.close();
+        vBuffer.close();
+        return same;
     }
 
     public boolean equal(InputBuffer rBuffer, InputBuffer vBuffer) throws IOException {
@@ -125,5 +130,6 @@ public class Validation {
         vfile.flush();
         vfile.close();
     }
+    
 
 }

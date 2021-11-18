@@ -293,18 +293,17 @@ public class MainBuffer {
     /**
      * this merge function merge one block
      * meaning it will stop after one block is empty
-     * 
-     * @param output
-     *            OutputBuffer to load removed records into
-     * 
-     * @throws IOException
+     * @throws IOException 
+     * @return the run number of the run that is empty
      */
-    public void mergeOnce(OutputBuffer output) throws IOException {
+    public int mergeOnce(OutputBuffer output) throws IOException {
         int originSize = elements;
-        while (elements == originSize) {
-            this.removeMin(output);
-            this.siftdown(0);
+        int runNum = -1;
+        while(elements == originSize) {
+            runNum = this.removeMin(output);
+            siftdown(0);
         }
+        return runNum;
     }
 
 

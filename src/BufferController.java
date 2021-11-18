@@ -198,6 +198,69 @@ public class BufferController {
     }
 
 
+    @SuppressWarnings("resource")
+    public void merge(RandomAccessFile runFrom, RandomAccessFile runInto) throws IOException {
+//        runFrom = new RandomAccessFile(runfile1, "rw");
+//        runInto = new RandomAccessFile(runfile2, "rw");
+        input.changeFile(runFrom);
+        output.changeFile(runInto);
+        int current = 0;
+        Long[] runBegin = runBeginDest.get();
+        Long[] runEnd = runEndDest.get();   //pay attention to the type   since it's using runBegin.length
+        // to build up the heap first time
+        current = buildupMerge(current);
+
+        // do the merge sort untill there is only one run in the file
+        // run2 will be wrong need to change later
+        while(!AllRunEmpty(runBegin, runEnd)) {
+            while(heap.heapSize() != 0) {
+                int runNum = heap.mergeOnce(output);
+                runBegin[runNum] = runBegin[runNum] + 8192;
+                if (runBegin[runNum].compareTo(runEnd[runNum]) < 0) {
+                    input.seek(runBegin[runNum]);
+                    heap.insert(input.getData(), runNum);
+                }
+            }
+            current = buildupMerge(current);
+            
+        }
+        output.flush();
+        runFrom.close();
+        runInto.close();
+    }
+    
+    /**
+     * 
+     * @param numOfEightRun
+     * @throws IOException
+     */
+    private int buildupMerge(int current) throws IOException {
+        int currRun = current;
+        while(heap.heapSize() < 8 && (runBeginDest.get().length > currRun && 
+            runBeginDest.get()[currRun] != null)) {
+            input.seek(runBeginDest.get()[currRun]);
+            heap.insert(input.getData(), currRun);
+            currRun++;
+        }
+        return currRun;
+    }
+
+    
+    /**
+     * 
+     * @param begin
+     * @param end
+     * @return
+     */
+    private boolean AllRunEmpty(Long[] begin, Long[] end) {
+        for (int i  = 0; i < begin.length && begin[i] != null; i++) {
+            if (begin[i].compareTo(end[i]) != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     /**
      * Creates a run file using replacement selection.
      * 

@@ -51,10 +51,10 @@ public class MainBuffer {
 
     /**
      * Inserts key into heap. Will fail if heap is full. Automatically builds
-     * min heap. key ID defaults to SubBuffer flush value.
+     * min heap.
      * 
-     * @param key
-     *            Value into insert into heap
+     * @param block
+     *            Block to be inserted into buffer
      */
     public void insert(byte[] block) {
         if (elements >= size) {
@@ -81,10 +81,12 @@ public class MainBuffer {
 
     /**
      * Inserts key into heap. Will fail if heap is full. Automatically builds
-     * min heap. Assigns an ID to this key.
+     * min heap. runNum assigned to the inserted block
      * 
-     * @param key
+     * @param block
      *            Value into insert into heap
+     * @param runNum
+     *            Value to be set to the block inserted into the heap
      */
     public void insert(byte[] block, int runNum) {
         if (elements >= size) {
@@ -142,7 +144,7 @@ public class MainBuffer {
      * @param dest
      *            Destination to store min value. Does not store a new
      *            value if this function fails.
-     * @return ID of min key, -1 if fails
+     * @return runNum of min key, -1 if fails
      */
     public int removeMin(OutputBuffer dest) throws IOException {
         if (elements == 0) {
@@ -172,7 +174,7 @@ public class MainBuffer {
 
     /**
      * Reactivates all inactive heap elements. Does not activate heap elements
-     * that do not have any data.
+     * who have 0 elements or are null.
      */
     public void reactivateHeap() {
         int livePosition = 0;
@@ -194,21 +196,21 @@ public class MainBuffer {
      * sets compare's data to it. Afterwards, compares the removed smallest
      * value to key.
      * 
-     * If key >= smallest value, replace smallest val's position in heap with
-     * key. Shift down to make minheap.
+     * If block >= recent removed record, replace empty spot in
+     * heap with block. Shift down to make minheap.
      * 
-     * If key < smallest value, replace smallest val's position in heap with
-     * key. Swap key with current largest value in heap. Heap size decremented.
-     * Shift down largest value to make minheap.
+     * If key < recent removed record, replace empty spot in heap with
+     * block (At end of heap). Swap block with current largest value in heap.
+     * Heap size decremented. Shift down largest block to make minheap.
      * 
      * Notes:
      * - Call insert(byte[]) to insert initial RS elements
      * - Call heapSize() to get current heap size
-     * - Call reactivateHeap() to reactivate all keys < smallest value in heap.
+     * - Call reactivateHeap() to reactivate all keys matching a criteria
      * - Call replacementSelection(null, OutputBuffer) to remove smallest
      * value without adding new values.
      * 
-     * @param key
+     * @param block
      *            Block to insert into heap. Can be null.
      * @param compare
      *            Output buffer storing value that was replaced.
@@ -260,9 +262,13 @@ public class MainBuffer {
 
 
     /**
-     * Continually performs replacment selection until block is inserted
+     * Continually performs replacement selection until block is inserted
      * into the heap
      * 
+     * @param block
+     *            Block to insert into heap
+     * @param compare
+     *            OutputBuffer loaded with removed records
      * @throws IOException
      */
     public void replacementSelectionCycle(byte[] block, OutputBuffer compare)
@@ -273,7 +279,7 @@ public class MainBuffer {
         else {
             int counter = 0;
             while (!replacementSelection(block, compare)) {
-                if(heap[0].getActiveElements() == 1) {
+                if (heap[0].getActiveElements() == 1) {
                     System.out.println("huh");
                 }
                 counter++;
@@ -283,18 +289,24 @@ public class MainBuffer {
         }
     }
 
+
     /**
      * this merge function merge one block
      * meaning it will stop after one block is empty
-     * @throws IOException 
+     * 
+     * @param output
+     *            OutputBuffer to load removed records into
+     * 
+     * @throws IOException
      */
     public void mergeOnce(OutputBuffer output) throws IOException {
         int originSize = elements;
-        while(elements == originSize) {
+        while (elements == originSize) {
             this.removeMin(output);
             this.siftdown(0);
         }
     }
+
 
     /**
      * Builds heap from rt to the # of elements in the heap.

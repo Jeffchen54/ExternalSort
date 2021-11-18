@@ -1,7 +1,6 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import org.junit.Test;
 import student.TestCase;
 
 // On my honor:
@@ -40,7 +39,6 @@ public class InputBufferTest extends TestCase {
     /**
      * Creates buffer with size 8192 bytes and Canvas provided input file
      */
-    @Test
     public void setUp() throws IOException {
         RandomAccessFile file = new RandomAccessFile("sampleInput16.bin", "r");
         buffer = new InputBuffer(file);
@@ -112,35 +110,6 @@ public class InputBufferTest extends TestCase {
 
 
     /**
-     * Playing with a tiny bin with total bytes < 8192
-     * 
-     * @throws IOException
-     * @throws FileNotFoundException
-     */
-    public void testTiny() throws FileNotFoundException, IOException {
-        // Initializing ---------------------------------------------------
-        InputBuffer buff = new InputBuffer(new RandomAccessFile("tiny.bin",
-            "r"));
-
-        // Taking byte[] info
-        byte[] data = buff.getData();
-
-        // Test confirms byte[] start with an array of 0s (NULL in ASCII).
-        // Reusing an old array to be filled with a not full block leaves old
-        // data from the previous block in the reused array. This can be
-        // remedied
-        // with a clearing function; however, that is beyond the scope of this
-        // project since all blocks will always be 8192 byte size.
-        assertEquals(0, data[304]);
-        assertFalse(0 == data[303]);
-
-        buffer.changeFile(new RandomAccessFile("tiny.bin", "r"));
-        assertEquals(data[303], buffer.getData()[303]);
-        assertFalse(0 == buffer.getData()[304]);
-    }
-
-
-    /**
      * Moves the buffer to the beginning of the next block in the file where a
      * block is of size data.length
      * 
@@ -187,13 +156,14 @@ public class InputBufferTest extends TestCase {
         buffer.nextBlock();
         assertEquals(2465224465483701295L, buffer.nextLong(8));
         assertEquals(1.979063847945134E-200, buffer.nextDouble(8), 0.1);
-        
-        buffer = new InputBuffer(new RandomAccessFile ("Temp10BreverseSorted.bin", "r"));
-        while(!buffer.endOfFile()) {
+
+        buffer = new InputBuffer(new RandomAccessFile(
+            "Temp10BreverseSorted.bin", "r"));
+        while (!buffer.endOfFile()) {
             buffer.nextBlock();
             System.out.println(buffer.filePointer());
         }
-        
+
     }
 
 
@@ -272,7 +242,7 @@ public class InputBufferTest extends TestCase {
         double a = buffer.nextLong(8);
 
         // Switching the file
-        buffer.changeFile(new RandomAccessFile("64Blocks_Barnette.bin", "r"));
+        buffer.changeFile(new RandomAccessFile("Temp1B.bin", "r"));
 
         // Saving the first 8 bytes of this other file
         double b = buffer.nextLong(8);
@@ -399,5 +369,15 @@ public class InputBufferTest extends TestCase {
             exception = e;
         }
         assertNull(exception);
+    }
+
+
+    /**
+     * Tests getFile()
+     * 
+     * @throws IOException
+     */
+    public void testGetFile() throws IOException {
+        assertEquals(131072, buffer.getFile().length(), 0.1);
     }
 }

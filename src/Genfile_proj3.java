@@ -1,36 +1,44 @@
-// WARNING: This program uses the Assertion class. When it is run,
-// assertions must be turned on. For example, under Linux, use:
-// java -ea Genfile
-
-/**
- * Generate a data file. The size is a multiple of 8192 bytes.
- * Each record is one long and one double.
- */
 import java.io.*;
 import java.util.*;
 
+// On my honor:
+//
+// - I have not used source code obtained from another student,
+// or any other unauthorized source, either modified or
+// unmodified.
+//
+// - All source code and documentation used in my program is
+// either my original work, or was derived by me from the
+// source code published in the textbook for this course.
+//
+// - I have not discussed coding details about this project with
+// anyone other than my partner (in the case of a joint
+// submission), instructor, ACM/UPE tutors or the TAs assigned
+// to this course. I understand that I may discuss the concepts
+// of this program with other students, and that another student
+// may help me debug my program so long as neither of us writes
+// anything during the discussion or modifies any computer file
+// during the discussion. I have violated neither the spirit nor
+// letter of this restriction
+
+// Java Doc ------------------------------------------------------------------
+/**
+ * Generate a data file. The size is a multiple of 8192 bytes.
+ * Each record is one long and one double. *
+ * 
+ * @author Ben Chen
+ * @version 11.17.2021
+ */
 public class Genfile_proj3 {
 
     static final int NumRecs = 512; // Because they are short ints
 
-    /** Initialize the random variable */
-    static private Random value = new Random(); // Hold the Random class object
-
-    static long randLong() {
-        return value.nextLong();
-    }
-
-
-    static double randDouble() {
-        return value.nextDouble();
-    }
-
-
     /**
-     * size 1 means 1 block
-     * 5 means 5 blocks
+     * Generates sorted, unsorted, and reverse sorted .bin files.
      * 
      * @param args
+     *            args[0] is file name w/o .bin and args[1] is number of blocks
+     *            ot be generated
      * @throws IOException
      */
     public static void main(String args[]) throws IOException {
@@ -67,17 +75,7 @@ public class Genfile_proj3 {
         Sfile.flush();
         Sfile.close();
 
-        
-     
-        
-        
-        System.out.println("-------------------------------------------------");
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////this is for reverse sorted file////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-        for (int i = 0; i < list.size()/2; i++) {
+        for (int i = 0; i < list.size() / 2; i++) {
             Pair temp = list.get(i);
             list.set(i, list.get(list.size() - 1 - i));
             list.set(list.size() - 1 - i, temp);
@@ -89,18 +87,9 @@ public class Genfile_proj3 {
 
         RSfile.flush();
         RSfile.close();
-        
-     
-        System.out.println("----------------------sorted---------------------");
-////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////// this is for sorted file////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////// 
-////////////////////////////////////////////////////////////////////////////////////////////////
 
-        
-        
-        for (int i = 0; i < list.size()/2; i++) {
-            if(i % 2 == 0) {
+        for (int i = 0; i < list.size() / 2; i++) {
+            if (i % 2 == 0) {
                 Pair temp = list.get(i);
                 list.set(i, list.get(list.size() - 1 - i));
                 list.set(list.size() - 1 - i, temp);
@@ -110,13 +99,9 @@ public class Genfile_proj3 {
             file.writeLong(list.get(i).getId());
             file.writeDouble(list.get(i).getKey());
         }
-       
+
         file.flush();
         file.close();
-
-     
-        System.out.println("------------------reverse sorted-----------------");
-
     }
 
 }

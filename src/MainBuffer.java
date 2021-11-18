@@ -243,6 +243,9 @@ public class MainBuffer {
                     elements--;
                     this.swap(0, elements);
                 }
+                else {
+                    this.buildheap();
+                }
                 // Else, we siftdown which we also do if there is no new
                 // block inserted
                 inserted = true;
@@ -268,7 +271,12 @@ public class MainBuffer {
             return;
         }
         else {
+            int counter = 0;
             while (!replacementSelection(block, compare)) {
+                if(heap[0].getActiveElements() == 1) {
+                    System.out.println("huh");
+                }
+                counter++;
                 // Continually removes from replacement selection
                 // until block is finally inserted into the heap.
             }

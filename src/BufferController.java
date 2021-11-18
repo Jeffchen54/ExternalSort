@@ -249,7 +249,6 @@ public class BufferController {
                 inserted++;
                 heap.replacementSelectionCycle(input.getData(), output);
                 input.nextBlock();
-                output.flush();
 
             }
 

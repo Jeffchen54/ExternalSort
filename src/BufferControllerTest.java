@@ -7,7 +7,7 @@ public class BufferControllerTest extends student.TestCase {
 
     private BufferController bc;
     private final String OUTPUT = "sampleInput16.bin";
-    private final String OUTPUT2 = "Temp9BreverseSorted.bin";
+    private final String OUTPUT2 = "Temp10BreverseSorted.bin";
 
     public void setUp() throws IOException {
         bc = new BufferController(OUTPUT);

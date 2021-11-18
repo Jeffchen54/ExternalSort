@@ -187,6 +187,13 @@ public class InputBufferTest extends TestCase {
         buffer.nextBlock();
         assertEquals(2465224465483701295L, buffer.nextLong(8));
         assertEquals(1.979063847945134E-200, buffer.nextDouble(8), 0.1);
+        
+        buffer = new InputBuffer(new RandomAccessFile ("Temp10BreverseSorted.bin", "r"));
+        while(!buffer.endOfFile()) {
+            buffer.nextBlock();
+            System.out.println(buffer.filePointer());
+        }
+        
     }
 
 

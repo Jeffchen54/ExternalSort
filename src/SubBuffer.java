@@ -8,7 +8,6 @@ public class SubBuffer {
     private int size;
     private int runNum;
 
-    
     public SubBuffer(byte[] src) {
         size = 512;
         record = ByteBuffer.wrap(src);
@@ -252,5 +251,13 @@ public class SubBuffer {
     private double convertToDouble(byte[] array) {
         ByteBuffer buffer = ByteBuffer.wrap(array);
         return buffer.getDouble();
+    }
+
+
+    /**
+     * Returns toString of the root record
+     */
+    public String toString() {
+        return this.getRt().toString();
     }
 }

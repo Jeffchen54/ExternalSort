@@ -38,7 +38,7 @@ public class BufferControllerTest extends student.TestCase {
         }
 
         
-        input.close();
+        //input.close();
         
         File file = new File("JeffChenRunUno.bin");
         file.delete();
@@ -51,7 +51,7 @@ public class BufferControllerTest extends student.TestCase {
         input = new InputBuffer(new RandomAccessFile(
             "JeffChenRunUno.bin", "r"));
 
-        prev = this.getKey(input);
+        //prev = this.getKey(input);
   
 
         while (!input.endOfFile()) {

@@ -246,10 +246,12 @@ public class BufferController {
             // Calling replacement selection until either max run is reached or
             // no more input
             while (!input.endOfFile() && heap.heapSize() != 0) {
+
                 inserted++;
                 heap.replacementSelectionCycle(input.getData(), output);
                 input.nextBlock();
-
+                System.out.println(input.filePointer());
+                System.out.println(input.endOfFile());
             }
 
             // Reactivating heap if needed, runEndDest run position is here
@@ -277,7 +279,6 @@ public class BufferController {
             if (input.endOfFile()) {
                 inserted++;
                 heap.replacementSelectionCycle(input.getData(), output);
-                output.flush();
 
                 int heapRemain = heap.heapSize();
                 // Wiping remaining heap elements
@@ -309,7 +310,6 @@ public class BufferController {
         if (heap.heapSize() > 0) {
             while (heap.heapSize() > 0) {
                 heap.replacementSelection(null, output);
-                output.flush();
             }
 
             // Registers run data

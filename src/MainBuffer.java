@@ -283,6 +283,18 @@ public class MainBuffer {
         }
     }
 
+    /**
+     * this merge function merge one block
+     * meaning it will stop after one block is empty
+     * @throws IOException 
+     */
+    public void mergeOnce(OutputBuffer output) throws IOException {
+        int originSize = elements;
+        while(elements == originSize) {
+            this.removeMin(output);
+            this.siftdown(0);
+        }
+    }
 
     /**
      * Builds heap from rt to the # of elements in the heap.

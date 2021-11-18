@@ -23,10 +23,12 @@ public class ValidationTest extends student.TestCase {
     public void testValidation() throws IOException {
         Validation v = new Validation("BenSample11B.bin", "BenSample11B.bin");
         assertTrue(v.compare());
-        v = new Validation("BenSample11B.bin", "BenSample11Bsorted.bin");
-        assertFalse(v.compare());
-//        v = new Validation("SampleSort16Bsorted.bin", "output16B.bin");
-//        assertTrue(v.compare());
+        Validation k = new Validation("BenSample11B.bin", "BenSample11Bsorted.bin");
+        assertFalse(k.compare());
+        Validation t = new Validation("BenSample11Bsorted.bin", "BenSample11Bsorted.bin");
+        assertTrue(t.compare());
+        Validation s = new Validation("BenSample11BreverseSorted.bin", "BenSample11BreverseSorted.bin");
+        assertTrue(s.compare());
     }
     
 }

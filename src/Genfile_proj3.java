@@ -56,81 +56,67 @@ public class Genfile_proj3 {
             for (int j = 0; j < NumRecs; j++) {
                 ID = (long)(512 * i + j);
                 Sfile.writeLong(ID);
-                key = (double)(randDouble());
-                Sfile.writeDouble(512 * i + j);
+                key = (double)(512 * i + j);
+                Sfile.writeDouble(key);
 
                 // add each pair to the list
                 list.add(new Pair(ID, key));
-
-//                // print out the first key of each block
-//                if (j == 0) {
-//                    System.out.println(key);
-//                }
-
             }
         }
 
-// // print out the whole data
-// for (int h = 0; h < list.size(); h++) {
-// if (h%512 == 0) {
-// System.out.println("-----------------this is the first
-// item--------------------");
-// }
-// System.out.println(list.get(h).getId() + " " + list.get(h).getKey());
-// }
         Sfile.flush();
         Sfile.close();
 
+        
+     
+        
+        
         System.out.println("-------------------------------------------------");
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////this is for reverse sorted file////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+        for (int i = 0; i < list.size()/2; i++) {
+            Pair temp = list.get(i);
+            list.set(i, list.get(list.size() - 1 - i));
+            list.set(list.size() - 1 - i, temp);
+        }
+        for (int i = 0; i < list.size(); i++) {
+            RSfile.writeLong(list.get(i).getId());
+            RSfile.writeDouble(list.get(i).getKey());
+        }
+
+        RSfile.flush();
+        RSfile.close();
+        
+     
         System.out.println("----------------------sorted---------------------");
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// this is for sorted file////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////// 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-//        // print out first item of each block
-//        for (int i = 0; i < list.size(); i += 512) {
-//            System.out.println(list.get(i).getKey());
-//        }
+        
+        
         for (int i = 0; i < list.size()/2; i++) {
-            Pair temp = list.get(i);
-            list.set(i, list.get(list.size() - 1 - i));
-            list.set(list.size() - 1, temp);
+            if(i % 2 == 0) {
+                Pair temp = list.get(i);
+                list.set(i, list.get(list.size() - 1 - i));
+                list.set(list.size() - 1 - i, temp);
+            }
         }
         for (int i = 0; i < list.size(); i++) {
             file.writeLong(list.get(i).getId());
             file.writeDouble(list.get(i).getKey());
         }
-
-// // print out the whole sorted data
-// if (i%512 == 0) {
-// System.out.println("-----------------this is the first
-// item--------------------");
-// }
-// System.out.println(list.get(i).getId() + " " + list.get(i).getKey());
-        
+       
         file.flush();
         file.close();
 
+     
         System.out.println("------------------reverse sorted-----------------");
-////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////// this is for reverse sorted
-//////////////////////////////////////////////////////////////////////////////////////////////// file/////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
 
-        
-        for (int i = 0; i < list.size()/2; i++) {
-            Pair temp = list.get(i);
-            list.set(i, list.get(list.size() - 1 - i));
-            list.set(list.size() - 1, temp);
-        }
-        for (int i = 0; i < list.size(); i++) {
-            RSfile.writeLong(list.get(i).getId());
-            RSfile.writeDouble(list.get(i).getKey());
-        }
-        
-        RSfile.flush();
-        RSfile.close();
     }
 
 }

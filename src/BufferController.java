@@ -198,31 +198,56 @@ public class BufferController {
     }
 
 
+    public void mergeAll(RandomAccessFile runFrom, RandomAccessFile runInto) throws IOException {
+        int pass;
+        while(runBeginDest.get()[1].compareTo(runEndDest.get()[0]) != 0) {
+            
+            
+            
+            
+            pass++;
+        }
+    }
+    
+    
+    
+    
+    
+    /**
+     * this the merge for at most 8 runs
+     * @param runFrom
+     * @param runInto
+     * @throws IOException
+     */
     @SuppressWarnings("resource")
-    public void merge(RandomAccessFile runFrom, RandomAccessFile runInto) throws IOException {
-//        runFrom = new RandomAccessFile(runfile1, "rw");
-//        runInto = new RandomAccessFile(runfile2, "rw");
-        input.changeFile(runFrom);
-        output.changeFile(runInto);
+    public void merge(RandomAccessFile runFrom, RandomAccessFile runInto, int pass) throws IOException {
+        if (pass % 2 == 0) {
+            input.changeFile(runFrom);
+            output.changeFile(runInto);
+        }
+        else if (pass % 2 == 1) {
+            input.changeFile(runInto);
+            output.changeFile(runFrom);
+        }
         int current = 0;
         Long[] runBegin = runBeginDest.get();
         Long[] runEnd = runEndDest.get();   //pay attention to the type   since it's using runBegin.length
         // to build up the heap first time
         current = buildupMerge(current);
 
-        // do the merge sort untill there is only one run in the file
-        // run2 will be wrong need to change later
+        // this while end when every run in the file sorted
         while(!AllRunEmpty(runBegin, runEnd)) {
+            // this while end when every eight run is sorted
             while(heap.heapSize() != 0) {
                 int runNum = heap.mergeOnce(output);
                 runBegin[runNum] = runBegin[runNum] + 8192;
+                
                 if (runBegin[runNum].compareTo(runEnd[runNum]) < 0) {
                     input.seek(runBegin[runNum]);
                     heap.insert(input.getData(), runNum);
                 }
             }
             current = buildupMerge(current);
-            
         }
         output.flush();
         runFrom.close();

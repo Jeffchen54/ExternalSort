@@ -119,29 +119,90 @@ public class BufferControllerTest extends student.TestCase {
         this.closeForRS(input);
         this.deleteTemp();
     }
-    
-    
-    
-    
-    
-    
-public void testMerge() throws FileNotFoundException, IOException {
+
+
+
+
+
+
+    public void testMerge() throws FileNotFoundException, IOException {
+        InputBuffer check = new InputBuffer(new RandomAccessFile(
+            "BenSample11BreverseSorted.bin", "r"));
+        while (!check.endOfFile()) {
+            for (int i = 0; i < 512; i++) {
+                //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
+                System.out.print(this.getKey(check) + " ");
+                check.next(16);
+            }
+
+            System.out.println("");
+            check.nextBlock();
+
+        }
+        for (int i = 0; i < 512; i++) {
+            //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
+            System.out.print(this.getKey(check) + " ");
+            check.next(16);
+        }
         
+        
+        
+        
+        System.out.print("\n");
+        System.out.println("----------------");
+        
+        
+        
+        
+        bc = new BufferController("BenSample11BreverseSorted.bin");
         bc.replacementSelection();
+
         
-        RandomAccessFile from = new RandomAccessFile("BenSample11B.bin", "r");
+        
+        
+        InputBuffer rsReady = new InputBuffer(new RandomAccessFile(
+            "JeffChenRunUno.bin", "r"));
+
+        //prev = this.getKey(input);
+
+
+        while (!rsReady.endOfFile()) {
+            for (int i = 0; i < 512; i++) {
+                //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
+                System.out.print(this.getKey(rsReady) + " ");
+                rsReady.next(16);
+            }
+
+            System.out.println("");
+            rsReady.nextBlock();
+
+        }
+        for (int i = 0; i < 512; i++) {
+            //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
+            System.out.print(this.getKey(rsReady) + " ");
+            rsReady.next(16);
+        }
+        
+        
+        
+        
+        
+        
+        
+        RandomAccessFile from = new RandomAccessFile("JeffChenRunUno.bin", "r");
         RandomAccessFile to = new RandomAccessFile("BenTemp.bin", "rw");
-        bc.merge(from, to);
-        
-        
-        
-        
+        bc.merge(from, to, 0);
+         
+        System.out.print("\n");
+        System.out.println("----------------");
+
+
         
         InputBuffer input = new InputBuffer(new RandomAccessFile(
             "BenTemp.bin", "r"));
 
         //prev = this.getKey(input);
-  
+
 
         while (!input.endOfFile()) {
             for (int i = 0; i < 512; i++) {
@@ -149,17 +210,17 @@ public void testMerge() throws FileNotFoundException, IOException {
                 System.out.print(this.getKey(input) + " ");
                 input.next(16);
             }
-            
+
             System.out.println("");
             input.nextBlock();
-            
+
         }
         for (int i = 0; i < 512; i++) {
             //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
             System.out.print(this.getKey(input) + " ");
             input.next(16);
         }
-        
+
     }
 
 // Helpers --------------------------------------------------------

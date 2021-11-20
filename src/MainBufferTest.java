@@ -222,10 +222,6 @@ public class MainBufferTest extends TestCase {
         heap.reactivateHeap();
         assertEquals(0, heap.heapSize());
 
-        // Reactivating when Replacement selection removed a block
-
-        // Reactivating when replacement selection disconnected an inserted
-        // Block
     }
 
 
@@ -303,14 +299,14 @@ public class MainBufferTest extends TestCase {
             assertEquals(i, inputFile.readDouble(), 0.1);
         }
 
-        output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
         inputFile.close();
-        if (!file.delete()) {
+        if (file.exists() && !file.delete()) {
             throw new IOException();
         }
         if (!file.createNewFile()) {
             throw new IOException();
         }
+        output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
 
         // Doing ReplacementSelection with new input < last input value
 
@@ -355,7 +351,9 @@ public class MainBufferTest extends TestCase {
         }
 
         inputFile.close();
-        file.delete();
+        if (!file.delete()) {
+            throw new IOException();
+        }
 
     }
 

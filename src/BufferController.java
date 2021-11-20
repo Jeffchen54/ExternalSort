@@ -20,7 +20,7 @@ import java.io.RandomAccessFile;
 // may help me debug my program so long as neither of us writes
 // anything during the discussion or modifies any computer file
 // during the discussion. I have violated neither the spirit nor
-// letter of this restriction. - JC
+// letter of this restriction.
 
 // Java Doc ------------------------------------------------------------------
 /**
@@ -28,6 +28,7 @@ import java.io.RandomAccessFile;
  * Automatic file overwriting function.
  * 
  * @author chenj (chenjeff4840)
+ * @author Ben Chen
  * @version 11.3.2021
  */
 public class BufferController {

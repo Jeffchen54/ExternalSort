@@ -348,7 +348,6 @@ public class MainBufferTest extends TestCase {
 
         inputFile.close();
         file.delete();
-        file.createNewFile();
 
     }
 

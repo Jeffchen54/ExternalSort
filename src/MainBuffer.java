@@ -279,10 +279,6 @@ public class MainBuffer {
         else {
             int counter = 0;
             while (!replacementSelection(block, compare)) {
-                if (heap[0].getActiveElements() == 1) {
-                    System.out.println("huh");
-                }
-                counter++;
                 // Continually removes from replacement selection
                 // until block is finally inserted into the heap.
             }
@@ -293,13 +289,14 @@ public class MainBuffer {
     /**
      * this merge function merge one block
      * meaning it will stop after one block is empty
-     * @throws IOException 
+     * 
+     * @throws IOException
      * @return the run number of the run that is empty
      */
     public int mergeOnce(OutputBuffer output) throws IOException {
         int originSize = elements;
         int runNum = -1;
-        while(elements == originSize) {
+        while (elements == originSize) {
             runNum = this.removeMin(output);
             siftdown(0);
         }

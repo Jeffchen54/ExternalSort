@@ -38,7 +38,6 @@ public class BufferControllerTest extends student.TestCase {
     // Fields --------------------------------------------------------
     private BufferController bc;
     private final String OUTPUT = "sampleInput16.bin";
-    private final String OUTPUT2 = "Temp10BreverseSorted.bin";
     private final String GENFILE = "Temp";
     private final String RUN1 = "JeffChenRunUno.bin";
     // private final String SOFILE = "StandardOutputTemp.txt";
@@ -89,7 +88,9 @@ public class BufferControllerTest extends student.TestCase {
 
         ////////////////////////////////////////////////////////////////
         // Testing a double run file
-        bc = new BufferController(OUTPUT2);
+        Genfile_proj3.main(new String[] { GENFILE, Integer.toString(10) });
+
+        bc = new BufferController(GENFILE + "reversesorted.bin");
         bc.replacementSelection();
 
         // this.saveRecords(RUN1, SOFILE);

@@ -40,17 +40,17 @@ public class BufferControllerTest extends student.TestCase {
     /**
      * Default bin file to be sorted
      */
-    private final String OUTPUT = "sampleInput16.bin";
+    private final String output = "sampleInput16.bin";
 
     /**
      * Name of generated file, .bin is added on during generation
      */
-    private final String GENFILE = "Temp";
+    private final String genfile = "Temp";
 
     /**
      * Name of run file generated during replacmeent selection
      */
-    private final String RUN1 = "JeffChenRunUno.bin";
+    private final String run1 = "JeffChenRunUno.bin";
     private Validation valid;
 
     // Set Up --------------------------------------------------------
@@ -58,7 +58,7 @@ public class BufferControllerTest extends student.TestCase {
      * Sets up the buffer controller with a 16 block file
      */
     public void setUp() throws IOException {
-        bc = new BufferController(OUTPUT);
+        bc = new BufferController(output);
     }
 
 
@@ -73,7 +73,7 @@ public class BufferControllerTest extends student.TestCase {
         // Testing a single run file of 16 blocks
         bc.replacementSelection();
 
-        InputBuffer input = new InputBuffer(new RandomAccessFile(RUN1, "r"));
+        InputBuffer input = new InputBuffer(new RandomAccessFile(run1, "r"));
         input.next(8);
 
         Double prev = input.nextDouble(8);
@@ -98,12 +98,12 @@ public class BufferControllerTest extends student.TestCase {
 
         ////////////////////////////////////////////////////////////////
         // Testing a double run file
-        Genfile.main(new String[] { GENFILE, Integer.toString(10) });
+        Genfile.main(new String[] { genfile, Integer.toString(10) });
 
-        bc = new BufferController(GENFILE + "reversesorted.bin");
+        bc = new BufferController(genfile + "reversesorted.bin");
         bc.replacementSelection();
 
-        // this.saveRecords(RUN1, SOFILE);
+        // this.saveRecords(run1, SOFILE);
 
         assertEquals(0, bc.getRunBegin()[0], 0.1);
         assertEquals(65536, bc.getRunBegin()[1], 0.1);
@@ -119,11 +119,11 @@ public class BufferControllerTest extends student.TestCase {
 
         ////////////////////////////////////////////////////////////////
         // Testing a 400 block reverse file
-        Genfile.main(new String[] { GENFILE, Integer.toString(400) });
+        Genfile.main(new String[] { genfile, Integer.toString(400) });
 
-        bc = new BufferController(GENFILE + "reversesorted.bin");
+        bc = new BufferController(genfile + "reversesorted.bin");
         bc.replacementSelection();
-        // this.saveRecords(RUN1, SOFILE);
+        // this.saveRecords(run1, SOFILE);
 
         // Checking if runs are correct
         // For a reverse sorted file, they should always have runs of
@@ -185,14 +185,13 @@ public class BufferControllerTest extends student.TestCase {
      */
     private boolean sortAllCycle(int numBlocks) throws IOException {
         // Generating file, modify toString(x) to increase size
-        Genfile.main(new String[] { GENFILE, Integer.toString(
-            numBlocks) });
+        Genfile.main(new String[] { genfile, Integer.toString(numBlocks) });
 
-        this.sortCycle(GENFILE + ".bin", GENFILE + "sorted.bin");
-        this.sortCycle(GENFILE + "reversesorted.bin", GENFILE + "sorted.bin");
-        this.copyFile(new File(GENFILE + "sorted.bin"), new File(GENFILE
+        this.sortCycle(genfile + ".bin", genfile + "sorted.bin");
+        this.sortCycle(genfile + "reversesorted.bin", genfile + "sorted.bin");
+        this.copyFile(new File(genfile + "sorted.bin"), new File(genfile
             + "copysorted.bin"));
-        this.sortCycle(GENFILE + "copysorted.bin", GENFILE + "sorted.bin");
+        this.sortCycle(genfile + "copysorted.bin", genfile + "sorted.bin");
 
         this.deleteTemp();
         return true;
@@ -217,7 +216,7 @@ public class BufferControllerTest extends student.TestCase {
         bc.replacementSelection();
 
         // Performing merge sort
-        RandomAccessFile from = new RandomAccessFile(RUN1, "r");
+        RandomAccessFile from = new RandomAccessFile(run1, "r");
         RandomAccessFile to = new RandomAccessFile(file, "rw");
         bc.merge(from, to, 0);
 
@@ -232,73 +231,10 @@ public class BufferControllerTest extends student.TestCase {
         to.close();
         bc.close();
         input.close();
-        this.deleteFile(new File(RUN1));
+        this.deleteFile(new File(run1));
 
         return true;
     }
-
-
-    /**
-     * Saves all record keys from file into a String
-     * 
-     * @param file
-     *            file to read record keys from
-     * @return string containing all record keys with white space inbetween
-     *         and a "\n------\n" line between each block.
-     */
-
-    private String storeRecords(String file)
-        throws FileNotFoundException,
-        IOException {
-        StringBuilder build = new StringBuilder();
-        InputBuffer input = new InputBuffer(new RandomAccessFile(file, "r"));
-
-        while (!input.endOfFile()) {
-            for (int i = 0; i < 512; i++) {
-                build.append(this.getKey(input) + " ");
-                input.next(16);
-            }
-            build.append(
-                "\n----------------------------------------------------"
-                    + "-------------------------------------------------"
-                    + "------------"
-                    + "--------------------------------------------------"
-                    + "----------"
-                    + "---------------------------------------------------"
-                    + "--------\n");
-            input.nextBlock();
-        }
-
-        // Covers last missed block
-        for (int i = 0; i < 512; i++) {
-            build.append(this.getKey(input) + " ");
-            input.next(16);
-        }
-        build.append("\n----------------------------------------------------"
-            + "-------------------------------------------------------------"
-            + "------------------------------------------------------------"
-            + "-----------------------------------------------------------\n");
-        input.close();
-
-        return build.toString();
-    }
-
-    /**
-     * Saves record keys into a file
-     * 
-     * @param file
-     *            File to read records from
-     * @param dest
-     *            File to save record keys to
-     */
-    /*
-     * private void saveRecords(String file, String dest) throws IOException {
-     * String records = this.storeRecords(file);
-     * RandomAccessFile store = new RandomAccessFile(dest, "rw");
-     * store.write(records.getBytes());
-     * store.close();
-     * }
-     */
 
 
     /**
@@ -312,29 +248,29 @@ public class BufferControllerTest extends student.TestCase {
      */
     private boolean compareSingleRunRS(int size) throws IOException {
         // Testing a 4 block random file
-        Genfile.main(new String[] { GENFILE, Integer.toString(size) });
+        Genfile.main(new String[] { genfile, Integer.toString(size) });
 
         // Random
-        bc = new BufferController(GENFILE + ".bin");
+        bc = new BufferController(genfile + ".bin");
         bc.replacementSelection();
         bc.close();
-        valid = new Validation(RUN1, GENFILE + "sorted.bin");
+        valid = new Validation(run1, genfile + "sorted.bin");
         assertTrue(valid.compare());
 
         // Reverse sorted
-        bc = new BufferController(GENFILE + "reversesorted.bin");
+        bc = new BufferController(genfile + "reversesorted.bin");
         bc.replacementSelection();
         bc.close();
-        valid = new Validation(RUN1, GENFILE + "sorted.bin");
+        valid = new Validation(run1, genfile + "sorted.bin");
         assertTrue(valid.compare());
 
         // Sorted
-        this.copyFile(new File(GENFILE + "sorted.bin"), new File(GENFILE
+        this.copyFile(new File(genfile + "sorted.bin"), new File(genfile
             + "copysorted.bin"));
-        bc = new BufferController(GENFILE + "sorted.bin");
+        bc = new BufferController(genfile + "sorted.bin");
         bc.replacementSelection();
         bc.close();
-        valid = new Validation(RUN1, GENFILE + "copysorted.bin");
+        valid = new Validation(run1, genfile + "copysorted.bin");
         assertTrue(valid.compare());
 
         this.closeForRS(null);
@@ -350,13 +286,13 @@ public class BufferControllerTest extends student.TestCase {
      * @throws IOException
      */
     private void deleteTemp() throws IOException {
-        File file = new File(GENFILE + ".bin");
+        File file = new File(genfile + ".bin");
         this.deleteFile(file);
-        file = new File(GENFILE + "reversesorted.bin");
+        file = new File(genfile + "reversesorted.bin");
         this.deleteFile(file);
-        file = new File(GENFILE + "sorted.bin");
+        file = new File(genfile + "sorted.bin");
         this.deleteFile(file);
-        file = new File(GENFILE + "copysorted.bin");
+        file = new File(genfile + "copysorted.bin");
         this.deleteFile(file);
     }
 
@@ -387,7 +323,7 @@ public class BufferControllerTest extends student.TestCase {
      */
     private void closeForRS(InputBuffer input) throws IOException {
         bc.close();
-        File file = new File(RUN1);
+        File file = new File(run1);
         if (input != null) {
             input.close();
         }

@@ -85,6 +85,10 @@ public class Validation {
      * Checks if the files within the InputBuffers in the parameter contain
      * the same data
      * 
+     * @param rBuffer
+     *            contains file to be compared
+     * @param vBuffer
+     *            contains file to be compared
      * @return true if files are equal, false otherwise.
      */
     public boolean equal(InputBuffer rBuffer, InputBuffer vBuffer)

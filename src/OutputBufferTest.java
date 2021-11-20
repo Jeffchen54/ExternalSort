@@ -38,11 +38,11 @@ public class OutputBufferTest extends TestCase {
     /**
      * Name of a bin file to output to
      */
-    private final String TESTING = "testing.bin";
+    private final String testing = "testing.bin";
     /**
      * Name of a bin file to output to
      */
-    private final String TESTING2 = "testing2.bin";
+    private final String testing2 = "testing2.bin";
 
     // SetUp ------------------------------------------------------------
     /**
@@ -52,7 +52,7 @@ public class OutputBufferTest extends TestCase {
      */
     public void setUp() throws IOException {
         this.cleanUp();
-        buffer = new OutputBuffer(new RandomAccessFile(TESTING, "rw"));
+        buffer = new OutputBuffer(new RandomAccessFile(testing, "rw"));
     }
 
     // Tests ------------------------------------------------------------
@@ -78,7 +78,7 @@ public class OutputBufferTest extends TestCase {
         // OutputBuffer should be flushed.
         buffer.close();
 
-        InputBuffer input = new InputBuffer(new RandomAccessFile(TESTING, "r"));
+        InputBuffer input = new InputBuffer(new RandomAccessFile(testing, "r"));
 
         for (int i = 0; i < 512; i++) {
             assertEquals(i, input.nextLong(8));
@@ -90,7 +90,7 @@ public class OutputBufferTest extends TestCase {
         this.cleanUp();
 
         // Inserting 2 blocks of data into buffer.
-        buffer = new OutputBuffer(new RandomAccessFile(TESTING, "rw"));
+        buffer = new OutputBuffer(new RandomAccessFile(testing, "rw"));
         for (int i = 0; i < 512; i++) {
             buffer.insertRecord(new Record(this.makeRecord(i, i + 1)));
 
@@ -106,7 +106,7 @@ public class OutputBufferTest extends TestCase {
         // OutputBuffer should be flushed.
         buffer.close();
 
-        input = new InputBuffer(new RandomAccessFile(TESTING, "r"));
+        input = new InputBuffer(new RandomAccessFile(testing, "r"));
 
         for (int i = 0; i < 512; i++) {
             assertEquals(i, input.nextLong(8));
@@ -137,7 +137,7 @@ public class OutputBufferTest extends TestCase {
         Record record = new Record(this.makeRecord(0, 0));
 
         try {
-            buffer.changeFile(new RandomAccessFile(TESTING, "r"));
+            buffer.changeFile(new RandomAccessFile(testing, "r"));
             buffer.insertRecord(record);
             buffer.flush();
         }
@@ -147,12 +147,12 @@ public class OutputBufferTest extends TestCase {
         assertNotNull(exception);
 
         // Writing to one file, changing to another
-        buffer.changeFile(new RandomAccessFile(TESTING, "rw"));
+        buffer.changeFile(new RandomAccessFile(testing, "rw"));
         buffer.insertRecord(record);
         buffer.flush();
 
         // Changing
-        buffer.changeFile(new RandomAccessFile(TESTING2, "rw"));
+        buffer.changeFile(new RandomAccessFile(testing2, "rw"));
 
         // Putting different data in other file
         record = new Record(this.makeRecord(1, 1));
@@ -162,8 +162,8 @@ public class OutputBufferTest extends TestCase {
         buffer.close();
 
         // Validation
-        RandomAccessFile test1 = new RandomAccessFile(TESTING, "rw");
-        RandomAccessFile test2 = new RandomAccessFile(TESTING2, "rw");
+        RandomAccessFile test1 = new RandomAccessFile(testing, "rw");
+        RandomAccessFile test2 = new RandomAccessFile(testing2, "rw");
 
         byte[] data1 = new byte[8192];
         byte[] data2 = new byte[8192];
@@ -223,7 +223,7 @@ public class OutputBufferTest extends TestCase {
      * @throws IOException
      */
     private void cleanUp() throws IOException {
-        File file = new File(TESTING);
+        File file = new File(testing);
 
         if (file.exists()) {
             if (!file.delete()) {
@@ -231,7 +231,7 @@ public class OutputBufferTest extends TestCase {
             }
         }
 
-        file = new File(TESTING2);
+        file = new File(testing2);
 
         if (file.exists()) {
             if (!file.delete()) {

@@ -270,7 +270,10 @@ public class MainBufferTest extends TestCase {
         if (!file.delete()) {
             throw new IOException();
         }
-        file.createNewFile();
+
+        if (!file.createNewFile()) {
+            throw new IOException();
+        }
         output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
 
         // Doing Replacement Selection with new input > last input value
@@ -302,8 +305,12 @@ public class MainBufferTest extends TestCase {
 
         output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
         inputFile.close();
-        file.delete();
-        file.createNewFile();
+        if (!file.delete()) {
+            throw new IOException();
+        }
+        if (!file.createNewFile()) {
+            throw new IOException();
+        }
 
         // Doing ReplacementSelection with new input < last input value
 

@@ -80,10 +80,9 @@ public class ValidationTest extends student.TestCase {
      * @throws IOException
      */
     private void deleteFile(File file) throws IOException {
-        if (file.exists()) {
-            if (!file.delete()) {
-                throw new IOException();
-            }
+        if (file.exists() && (!file.delete())) {
+            throw new IOException();
         }
     }
+
 }

@@ -44,7 +44,7 @@ public class BufferController {
     private ArrayWrapper<Long> runBeginDest;
     private ArrayWrapper<Long> runEndDest;
     private String runfile1 = "JeffChenRunUno.bin";
-    private String runfile2 = "JeffChenRunDos.bin";
+    // private String runfile2 = "JeffChenRunDos.bin";
 
     // Constructor -----------------------------------------------------------
 
@@ -91,27 +91,21 @@ public class BufferController {
         this.close();
         this.printBlockRecords(inputFileName);
         this.close();
-        
-        
+
     }
 
     // Helpers -----------------------------------------------------------
-
-
-    public void mergeAll(RandomAccessFile runFrom, RandomAccessFile runInto)
-        throws IOException {
-        int pass = 0;
-        while (runBeginDest.get()[1].compareTo(runEndDest.get()[0]) != 0) {
-            pass++;
-        }
-    }
 
 
     /**
      * this the merge for at most 8 runs
      * 
      * @param runFrom
+     *            run file containing previous runs
      * @param runInto
+     *            run file to put current runs into
+     * @param pass
+     *            What pass the merge is on, begins with 0
      * @throws IOException
      */
     public void merge(
@@ -135,7 +129,7 @@ public class BufferController {
         current = buildupMerge(current);
 
         // this while end when every run in the file sorted
-        while (!AllRunEmpty(runBegin, runEnd)) {
+        while (!allRunEmpty(runBegin, runEnd)) {
             // this while end when every eight run is sorted
             while (heap.heapSize() != 0) {
                 int runNum = heap.mergeOnce(output);
@@ -155,39 +149,6 @@ public class BufferController {
 
 
     /**
-     * 
-     * @param numOfEightRun
-     * @throws IOException
-     */
-    private int buildupMerge(int current) throws IOException {
-        int currRun = current;
-        while (heap.heapSize() < 8 && (runBeginDest.get().length > currRun
-            && runBeginDest.get()[currRun] != null)) {
-            input.seek(runBeginDest.get()[currRun]);
-            heap.insert(input.getData(), currRun);
-            currRun++;
-        }
-        return currRun;
-    }
-
-
-    /**
-     * 
-     * @param begin
-     * @param end
-     * @return
-     */
-    private boolean AllRunEmpty(Long[] begin, Long[] end) {
-        for (int i = 0; i < begin.length && begin[i] != null; i++) {
-            if (begin[i].compareTo(end[i]) != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    /**
      * Creates a run file using replacement selection.
      * 
      * @precondition All streams using runFIle must be closed.
@@ -199,7 +160,6 @@ public class BufferController {
         IOException {
         RandomAccessFile blocks = new RandomAccessFile(inputFileName, "r");
         input.changeFile(blocks);
-        int inserted = 1;
 
         output.changeFile(new RandomAccessFile(runfile1, "rw"));
         int counter = 0;
@@ -211,7 +171,6 @@ public class BufferController {
 
         // Filling heap with 8 values
         while (counter < 8 && !input.endOfFile()) {
-            inserted++;
             heap.insert(input.getData());
             input.nextBlock();
             counter++;
@@ -219,7 +178,6 @@ public class BufferController {
 
         // Last entry
         if (counter < 8) {
-            inserted++;
             heap.insert(input.getData());
             input.nextBlock();
         }
@@ -231,7 +189,6 @@ public class BufferController {
             // no more input
             while (!input.endOfFile() && heap.heapSize() != 0) {
 
-                inserted++;
                 heap.replacementSelectionCycle(input.getData(), output);
                 input.nextBlock();
             }
@@ -259,7 +216,6 @@ public class BufferController {
 
             // Last statement not covered by while
             if (input.endOfFile()) {
-                inserted++;
                 heap.replacementSelectionCycle(input.getData(), output);
 
                 int heapRemain = heap.heapSize();
@@ -313,6 +269,79 @@ public class BufferController {
 
 
     /**
+     * Removes all temporary files and closes the file stream buffers
+     * 
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        input.close();
+        output.close();
+
+        // this.cleanUp();
+    }
+
+
+    /**
+     * Returns the run begin dimensions. Used for debugging purposes after
+     * replacement selection
+     * 
+     * @return Returns the run begins array
+     */
+    public Long[] getRunBegin() {
+        return runBeginDest.get();
+    }
+
+
+    /**
+     * Returns the run end dimensions. Used for debugging purposes after
+     * replacement selection
+     * 
+     * @return Returns the run ends array
+     */
+    public Long[] getRunEnd() {
+        return runEndDest.get();
+    }
+
+
+    /**
+     * Builds a heap with up to 8 blocks starting with the current run
+     * 
+     * @param current
+     *            Which run we are on. Begins with 0 for run 1.
+     * @throws IOException
+     */
+    private int buildupMerge(int current) throws IOException {
+        int currRun = current;
+        while (heap.heapSize() < 8 && (runBeginDest.get().length > currRun
+            && runBeginDest.get()[currRun] != null)) {
+            input.seek(runBeginDest.get()[currRun]);
+            heap.insert(input.getData(), currRun);
+            currRun++;
+        }
+        return currRun;
+    }
+
+
+    /**
+     * Checks if all runs have been exhausted.
+     * 
+     * @param begin
+     *            Beginning position of the runs
+     * @param end
+     *            Ending position of the runs
+     * @return True if all runs have been exhausted, false otherwise.
+     */
+    private boolean allRunEmpty(Long[] begin, Long[] end) {
+        for (int i = 0; i < begin.length && begin[i] != null; i++) {
+            if (begin[i].compareTo(end[i]) != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    /**
      * Copies the file within inputBuff into outputBuff.
      * 
      * @param inputBuff
@@ -348,53 +377,6 @@ public class BufferController {
 
 
     /**
-     * Removes all temporary files and closes the file stream buffers
-     * 
-     * @throws IOException
-     */
-    public void close() throws IOException {
-        input.close();
-        output.close();
-
-        // this.cleanUp();
-    }
-
-
-    /**
-     * Returns the run begin dimensions. Used for debugging purposes after
-     * replacement selection
-     */
-    public Long[] getRunBegin() {
-        return runBeginDest.get();
-    }
-
-
-    /**
-     * Returns the run end dimensions. Used for debugging purposes after
-     * replacement selection
-     */
-    public Long[] getRunEnd() {
-        return runEndDest.get();
-    }
-
-
-    /**
-     * Removes all temporary files
-     * 
-     * @throws IOException
-     */
-    private void cleanUp() throws IOException {
-        File temp = new File(runfile1);
-
-        if (!temp.delete()) {
-            throw new IOException();
-        }
-        // temp = new File(runfile2);
-        // temp.delete();
-    }
-
-
-    /**
      * Grabs the maximum number of runs for the selected file
      * 
      * @param blocks
@@ -424,21 +406,4 @@ public class BufferController {
         return maxRunCount;
 
     }
-
-
-    /**
-     * Clears the contents of the selected file
-     * 
-     * @param filename
-     *            File to clear.
-     * @throws IOException
-     */
-    private static void clearFile(String filename) throws IOException {
-        FileWriter fwOb = new FileWriter(filename, false);
-        PrintWriter pwOb = new PrintWriter(fwOb, false);
-        pwOb.flush();
-        pwOb.close();
-        fwOb.close();
-    }
-
 }

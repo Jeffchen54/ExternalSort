@@ -1,6 +1,3 @@
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import student.TestCase;
 // On my honor:
@@ -27,8 +24,8 @@ import student.TestCase;
 /**
  * Tests SubBuffer
  * 
- * @author chenj (chenjeff4840)
- * @version 11.2.2021
+ * @author Ben Chen
+ * @version 11.20.2021
  */
 public class SubBufferTest extends TestCase {
 
@@ -37,15 +34,12 @@ public class SubBufferTest extends TestCase {
 
     // Setup ------------------------------------------------------------
     /**
-     * Initialize buffers and set up input file with normal single block file
-     * 
-     * @throws IOException
-     * @throws FileNotFoundException
+     * Intentionally left empty since test functions have specialized setUps
      */
-    public void setUp() throws FileNotFoundException, IOException {
-        
-    
+    public void setUp() {
+        // Intentionally left empty
     }
+
 
     // Tests ------------------------------------------------------------
     /**
@@ -57,7 +51,8 @@ public class SubBufferTest extends TestCase {
         sub = new SubBuffer(source);
         assertEquals(sub.getRt().getKey(), 40.0, 0);
     }
-    
+
+
     /**
      * test the getRt method
      * with a the smallest value(55.5) in the middle
@@ -67,7 +62,8 @@ public class SubBufferTest extends TestCase {
         sub = new SubBuffer(source);
         assertEquals(sub.getRt().getKey(), 55.5, 1);
     }
-    
+
+
     /**
      * test the getRt method
      * with reverse sorted
@@ -77,7 +73,8 @@ public class SubBufferTest extends TestCase {
         sub = new SubBuffer(source);
         assertEquals(sub.getRt().getKey(), 1001, 1);
     }
-    
+
+
     /**
      * test the getRt method
      * with empty heap
@@ -90,7 +87,8 @@ public class SubBufferTest extends TestCase {
         }
         assertNull(sub.getRt());
     }
-    
+
+
     /**
      * test the removeRt method
      * with the sorted block
@@ -102,7 +100,8 @@ public class SubBufferTest extends TestCase {
         assertEquals(sub.removeRt().getKey(), 80, 1);
         assertEquals(sub.getRt().getKey(), 81, 1);
     }
-    
+
+
     /**
      * test the removeRt method
      * with the smallest value(55.5) in the middle
@@ -114,7 +113,8 @@ public class SubBufferTest extends TestCase {
         assertEquals(sub.removeRt().getKey(), 55.5, 1);
         assertEquals(sub.getRt().getKey(), 80.0, 1);
     }
-    
+
+
     /**
      * test the removeRt method
      * with reverse sorted
@@ -126,7 +126,8 @@ public class SubBufferTest extends TestCase {
         assertEquals(sub.removeRt().getKey(), 1001, 1);
         assertEquals(sub.getRt().getKey(), 1002, 1);
     }
-    
+
+
     /**
      * test the removeRt method
      * with empty heap
@@ -139,7 +140,8 @@ public class SubBufferTest extends TestCase {
         }
         assertNull(sub.removeRt());
     }
-    
+
+
     /**
      * test get ActiveElemets
      */
@@ -151,7 +153,8 @@ public class SubBufferTest extends TestCase {
         }
         assertEquals(sub.getActiveElements(), 462);
     }
-    
+
+
     /**
      * test get ActiveElemets
      * with empty heap
@@ -164,7 +167,8 @@ public class SubBufferTest extends TestCase {
         }
         assertEquals(sub.getActiveElements(), 0);
     }
-    
+
+
     /**
      * this test insertBlock with empty heap
      */
@@ -177,7 +181,8 @@ public class SubBufferTest extends TestCase {
         assertTrue(sub.insertBlock(source));
         assertEquals(sub.getRt().getKey(), 80, 0);
     }
-    
+
+
     /**
      * this test insertBlock with non-empty heap
      */
@@ -190,7 +195,8 @@ public class SubBufferTest extends TestCase {
         assertFalse(sub.insertBlock(source));
         assertEquals(sub.getRt().getKey(), 480, 0);
     }
-    
+
+
     /**
      * test compare to
      */
@@ -201,6 +207,8 @@ public class SubBufferTest extends TestCase {
         SubBuffer sub1 = new SubBuffer(source1);
         assertEquals(sub.compareTo(sub1), 0);
     }
+
+
     /**
      * test compare to
      */
@@ -211,6 +219,8 @@ public class SubBufferTest extends TestCase {
         SubBuffer sub1 = new SubBuffer(source1);
         assertEquals(sub.compareTo(sub1), -1);
     }
+
+
     /**
      * test compare to
      */
@@ -221,9 +231,10 @@ public class SubBufferTest extends TestCase {
         SubBuffer sub1 = new SubBuffer(source1);
         assertEquals(sub.compareTo(sub1), 1);
     }
-    
+
+
     /**
-     * this is to test if the heap sort correctly 
+     * this is to test if the heap sort correctly
      */
     public void testSortCorrection() {
         byte[] source = makeBlock(600, 80);
@@ -235,8 +246,10 @@ public class SubBufferTest extends TestCase {
             assertTrue(first < second);
         }
     }
+
+
     /**
-     * this is to test if the heap reverse sort correctly 
+     * this is to test if the heap reverse sort correctly
      */
     public void testSortCorrectionReverse() {
         byte[] source = makeBlockReverse(600, 80);
@@ -248,8 +261,10 @@ public class SubBufferTest extends TestCase {
             assertTrue(first < second);
         }
     }
+
+
     /**
-     * this is to test if the heap randomly sort correctly 
+     * this is to test if the heap randomly sort correctly
      */
     public void testSortCorrectionRan() {
         byte[] source = makeBlockRandom(600, 0);
@@ -261,8 +276,8 @@ public class SubBufferTest extends TestCase {
             assertTrue(first < second);
         }
     }
-    
-    
+
+
     /**
      * Creates a block of size 8192 with first record first id at id and first
      * key
@@ -275,7 +290,8 @@ public class SubBufferTest extends TestCase {
         }
         return buffer.array();
     }
-    
+
+
     /**
      * Creates a block of size 8192 with first record first id at id and first
      * key
@@ -292,6 +308,8 @@ public class SubBufferTest extends TestCase {
         }
         return buffer.array();
     }
+
+
     /**
      * Creates a block of size 8192 with first record first id at id and first
      * key
@@ -300,7 +318,8 @@ public class SubBufferTest extends TestCase {
     private byte[] makeBlockRandom(long id, double key) {
         ByteBuffer buffer = ByteBuffer.allocate(8192);
         for (int i = 0; i < 512; i++) {
-            if(i % 2 == 1) {
+
+            if (i % 2 == 1) {
                 buffer.put(makeRecord(id + i, key + i));
             }
             else {
@@ -309,7 +328,8 @@ public class SubBufferTest extends TestCase {
         }
         return buffer.array();
     }
-    
+
+
     /**
      * Creates a block of size 8192 with first record first id at id and first
      * key
@@ -322,7 +342,7 @@ public class SubBufferTest extends TestCase {
         }
         return buffer.array();
     }
-    
+
 
     /**
      * Creates a block of size 8192 with first record first id at id and first

@@ -34,7 +34,14 @@ import student.TestCase;
 public class OutputBufferTest extends TestCase {
     // Fields ------------------------------------------------------------
     private OutputBuffer buffer;
+
+    /**
+     * Name of a bin file to output to
+     */
     private final String TESTING = "testing.bin";
+    /**
+     * Name of a bin file to output to
+     */
     private final String TESTING2 = "testing2.bin";
 
     // SetUp ------------------------------------------------------------
@@ -106,7 +113,7 @@ public class OutputBufferTest extends TestCase {
             assertEquals(i + 1, input.nextDouble(8), 0.1);
         }
         input.nextBlock();
-        
+
         for (int i = 0; i < 512; i++) {
             assertEquals(i, input.nextLong(8));
             assertEquals(i + 1, input.nextDouble(8), 0.1);
@@ -219,13 +226,17 @@ public class OutputBufferTest extends TestCase {
         File file = new File(TESTING);
 
         if (file.exists()) {
-            file.delete();
+            if (!file.delete()) {
+                throw new IOException();
+            }
         }
 
         file = new File(TESTING2);
 
         if (file.exists()) {
-            file.delete();
+            if (!file.delete()) {
+                throw new IOException();
+            }
         }
         if (buffer != null) {
             buffer.close();
@@ -239,35 +250,23 @@ public class OutputBufferTest extends TestCase {
      * key
      * at key, additional records increment key and value by 1.
      */
-    private byte[] makeBlock(long id, double key) {
-        ByteBuffer buffer = ByteBuffer.allocate(8192);
-        for (int i = 0; i < 512; i++) {
-            buffer.put(makeRecord(id + i, key + i));
-        }
-        return buffer.array();
-    }
-
-
-    /**
-     * Creates a block of size 8192 with first record first id at id and first
-     * key
-     * at key, additional records increment key and value by 1.
-     */
     private byte[] makeRecord(long id, double key) {
-        ByteBuffer buffer = ByteBuffer.allocate(16);
-        buffer.putLong(id);
-        buffer.putDouble(key);
+        ByteBuffer buff = ByteBuffer.allocate(16);
+        buff.putLong(id);
+        buff.putDouble(key);
 
-        return buffer.array();
+        return buff.array();
     }
-    
+
+
     /**
      * Tests getLastRecord()
-     * @throws IOException 
+     * 
+     * @throws IOException
      */
     public void testGetLastRecord() throws IOException {
         Record record = null;
-        
+
         // Inserting data into buffer then flushing
         for (int i = 0; i < 512; i++) {
             record = new Record(this.makeRecord(i, i + 1));
@@ -279,11 +278,9 @@ public class OutputBufferTest extends TestCase {
         // This element is inserted when buffer is full, flushes buffer
         buffer.flush();
         assertEquals(0, buffer.getLastRecord().compareTo(record));
-        
+
         buffer.close();
         this.cleanUp();
 
-        
-        
     }
 }

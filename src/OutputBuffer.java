@@ -88,6 +88,8 @@ public class OutputBuffer {
      * Inserts a record into the OutputBuffer, automatically flushed when the
      * Buffer is full
      * 
+     * @param record
+     *            Record to insert
      * @throws IOException
      */
     public void insertRecord(Record record) throws IOException {

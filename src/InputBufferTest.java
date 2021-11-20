@@ -225,8 +225,6 @@ public class InputBufferTest extends TestCase {
     /**
      * Changes this.file to file
      * 
-     * @param file
-     *            File to change to
      * @throws IOException
      * @throws FileNotFoundException
      */
@@ -246,7 +244,7 @@ public class InputBufferTest extends TestCase {
         assertEquals(b, b2, 0.1);
 
         // Checking if a different file was indeed selected
-        assertFalse(a == b);
+        assertNotSame(a, b);
 
     }
 
@@ -256,18 +254,18 @@ public class InputBufferTest extends TestCase {
      */
     public void testRewind() {
         // Saving initial value
-        long original = buffer.nextLong(8);
+        Long original = buffer.nextLong(8);
 
         // Jumping 4000 bytes in buffer and saving value as long
         buffer.next(4000);
-        long jump = buffer.nextLong(8);
+        Long jump = buffer.nextLong(8);
 
         // Rewinding and verifying
         buffer.rewind();
-        long rewind = buffer.nextLong(8);
+        Long rewind = buffer.nextLong(8);
 
-        assertEquals(original, rewind);
-        assertFalse(jump == rewind);
+        assertTrue(original.equals(rewind));
+        assertFalse(jump.equals(rewind));
     }
 
 
@@ -276,25 +274,26 @@ public class InputBufferTest extends TestCase {
      */
     public void testResetMark() {
         // Saving initial values
-        long begin = buffer.nextLong(8);
+        Long begin = buffer.nextLong(8);
         buffer.mark();
-        long original = buffer.nextLong(8);
+        Long original = buffer.nextLong(8);
 
         // Jumping 4000 bytes in buffer and saving value as long
         buffer.next(4000);
-        long jump = buffer.nextLong(8);
+        Long jump = buffer.nextLong(8);
 
         // Resetting and verifying
         buffer.reset();
-        long reset = buffer.nextLong(8);
+        Long reset = buffer.nextLong(8);
 
-        assertEquals(original, reset);
-        assertFalse(jump == reset);
+        assertTrue(original.equals(reset));
+        assertFalse(jump.equals(reset));
 
         // Rewinding and making sure mark is gone
         buffer.rewind();
-        assertEquals(begin, buffer.nextLong(8));
-        assertFalse(begin == reset);
+        Long next = buffer.nextLong(8);
+        assertTrue(begin.equals(next));
+        assertFalse(begin.equals(reset));
     }
 
 

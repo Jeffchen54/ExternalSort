@@ -29,9 +29,12 @@ import java.util.*;
  * @author Ben Chen
  * @version 11.17.2021
  */
-public class Genfile_proj3 {
+public class Genfile {
 
-    static final int NumRecs = 512; // Because they are short ints
+    /**
+     * Number of records per block
+     */
+    static final int NUMRECS = 512;
 
     /**
      * Generates sorted, unsorted, and reverse sorted .bin files.
@@ -41,8 +44,8 @@ public class Genfile_proj3 {
      *            ot be generated
      * @throws IOException
      */
-    public static void main(String args[]) throws IOException {
-        long ID;
+    public static void main(String[] args) throws IOException {
+        long id;
         double key;
         assert (args.length == 2) : "\nUsage: Genfile <filename> <size>"
             + "\nOptions \nSize is measured in blocks of 8192 bytes";
@@ -53,27 +56,27 @@ public class Genfile_proj3 {
 
         // create another two file that store sorted data and reverse sorted
         // data
-        DataOutputStream Sfile = new DataOutputStream(new BufferedOutputStream(
+        DataOutputStream sFile = new DataOutputStream(new BufferedOutputStream(
             new FileOutputStream(args[0] + "sorted.bin")));
-        DataOutputStream RSfile = new DataOutputStream(new BufferedOutputStream(
+        DataOutputStream rsFile = new DataOutputStream(new BufferedOutputStream(
             new FileOutputStream(args[0] + "reverseSorted.bin")));
         // create a list for data storage, we will use later for sorting
         ArrayList<Pair> list = new ArrayList<Pair>();
 
         for (int i = 0; i < filesize; i++) {
-            for (int j = 0; j < NumRecs; j++) {
-                ID = (long)(512 * i + j);
-                Sfile.writeLong(ID);
+            for (int j = 0; j < NUMRECS; j++) {
+                id = (long)(512 * i + j);
+                sFile.writeLong(id);
                 key = (double)(512 * i + j);
-                Sfile.writeDouble(key);
+                sFile.writeDouble(key);
 
                 // add each pair to the list
-                list.add(new Pair(ID, key));
+                list.add(new Pair(id, key));
             }
         }
 
-        Sfile.flush();
-        Sfile.close();
+        sFile.flush();
+        sFile.close();
 
         for (int i = 0; i < list.size() / 2; i++) {
             Pair temp = list.get(i);
@@ -81,12 +84,12 @@ public class Genfile_proj3 {
             list.set(list.size() - 1 - i, temp);
         }
         for (int i = 0; i < list.size(); i++) {
-            RSfile.writeLong(list.get(i).getId());
-            RSfile.writeDouble(list.get(i).getKey());
+            rsFile.writeLong(list.get(i).getId());
+            rsFile.writeDouble(list.get(i).getKey());
         }
 
-        RSfile.flush();
-        RSfile.close();
+        rsFile.flush();
+        rsFile.close();
 
         for (int i = 0; i < list.size() / 2; i++) {
             if (i % 2 == 0) {

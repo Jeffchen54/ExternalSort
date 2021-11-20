@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 // On my honor:
 //
@@ -215,6 +214,8 @@ public class MainBuffer {
      * @param compare
      *            Output buffer storing value that was replaced.
      * @throws IOException
+     * @return true if block was inserted, false if not. Block inserted if
+     *         a block in the heap is empty
      */
     public boolean replacementSelection(byte[] block, OutputBuffer compare)
         throws IOException {
@@ -278,9 +279,11 @@ public class MainBuffer {
         }
         else {
             int counter = 0;
-            while (!replacementSelection(block, compare)) {
+            boolean inserted = false;
+            while (!inserted) {
                 // Continually removes from replacement selection
                 // until block is finally inserted into the heap.
+                inserted = replacementSelection(block, compare);
             }
         }
     }
@@ -291,6 +294,8 @@ public class MainBuffer {
      * meaning it will stop after one block is empty
      * 
      * @throws IOException
+     * @param output
+     *            OutputBuffer to output records into
      * @return the run number of the run that is empty
      */
     public int mergeOnce(OutputBuffer output) throws IOException {
@@ -380,21 +385,6 @@ public class MainBuffer {
             return -1;
         }
         return 2 * pos + 1;
-    }
-
-
-    /**
-     * Checks if pos position in heap is a right child
-     * 
-     * @param pos
-     *            Position in heap
-     * @return true if pos is right child
-     */
-    private int rightchild(int pos) {
-        if (pos >= (pos - 1) / 2) {
-            return -1;
-        }
-        return 2 * pos + 2;
     }
 
 

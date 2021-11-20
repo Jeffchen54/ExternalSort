@@ -184,14 +184,14 @@ public class InputBuffer {
 
 
     /**
-     * Closes this.file. Changes this.file to file
+     * Closes this.file. Changes this.file to other
      * 
-     * @param file
+     * @param other
      *            File to change to
      */
-    public void changeFile(RandomAccessFile file) throws IOException {
+    public void changeFile(RandomAccessFile other) throws IOException {
         this.file.close();
-        this.file = file;
+        this.file = other;
         this.seek(0);
     }
 
@@ -258,6 +258,8 @@ public class InputBuffer {
 
     /**
      * Returns the file
+     * 
+     * @return file being read by InputBuffer
      */
     public RandomAccessFile getFile() {
         return file;
@@ -273,8 +275,8 @@ public class InputBuffer {
      * @return array as long
      */
     private long convertToLong(byte[] array) {
-        ByteBuffer buffer = ByteBuffer.wrap(array);
-        return buffer.getLong();
+        ByteBuffer buff = ByteBuffer.wrap(array);
+        return buff.getLong();
     }
 
 
@@ -286,7 +288,7 @@ public class InputBuffer {
      * @return array as double
      */
     private double convertToDouble(byte[] array) {
-        ByteBuffer buffer = ByteBuffer.wrap(array);
-        return buffer.getDouble();
+        ByteBuffer buff = ByteBuffer.wrap(array);
+        return buff.getDouble();
     }
 }

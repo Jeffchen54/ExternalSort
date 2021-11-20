@@ -1,15 +1,46 @@
 import java.nio.ByteBuffer;
 
+// On my honor:
+//
+// - I have not used source code obtained from another student,
+// or any other unauthorized source, either modified or
+// unmodified.
+//
+// - All source code and documentation used in my program is
+// either my original work, or was derived by me from the
+// source code published in the textbook for this course.
+//
+// - I have not discussed coding details about this project with
+// anyone other than my partner (in the case of a joint
+// submission), instructor, ACM/UPE tutors or the TAs assigned
+// to this course. I understand that I may discuss the concepts
+// of this program with other students, and that another student
+// may help me debug my program so long as neither of us writes
+// anything during the discussion or modifies any computer file
+// during the discussion. I have violated neither the spirit nor
+// letter of this restriction.
+
+/**
+ * SubBuffers to be used in the heap.
+ * 
+ * @author Ben Chen
+ * @version 11.20.2021
+ */
 public class SubBuffer {
 
     private Record[] heap;
     private ByteBuffer record;
     private int elements;
-    private int size;
     private int runNum;
 
+    /**
+     * Constructs a SubBuffer loaded with src
+     * 
+     * @param src
+     *            Data to load into SubBuffer
+     * @precondition src is a byte[] of size 8192 bytes
+     */
     public SubBuffer(byte[] src) {
-        size = 512;
         record = ByteBuffer.wrap(src);
         heap = new Record[512];
         for (int i = 0; i < 512; i++) {
@@ -31,7 +62,10 @@ public class SubBuffer {
      * breakup to 512 records make the heap
      * 
      * @param src
-     * @return
+     *            Block to be inserted into the buffer
+     * @return True if inserted, false if not which occurs if buffer is not
+     *         empty
+     * @precondition src is of size 8192 bytes
      */
     public boolean insertBlock(byte[] src) {
         if (elements != 0) {
@@ -53,7 +87,7 @@ public class SubBuffer {
     /**
      * return the smallest key not remove it
      * 
-     * @return
+     * @return the smallest record in the buffer
      */
     public Record getRt() {
         if (elements == 0) {
@@ -97,7 +131,8 @@ public class SubBuffer {
      * the smallest key in another subBuffer
      * 
      * @param obj
-     * @return
+     *            SubBuffer to compare to
+     * @return 0 if equal, -1 if less than, 1 if greater than
      */
     public int compareTo(SubBuffer obj) {
         if (obj == null) {
@@ -118,6 +153,8 @@ public class SubBuffer {
 
     /**
      * Returns the runNum
+     * 
+     * @return run number, -1 if not set
      */
     public int getRunNum() {
         return runNum;
@@ -126,6 +163,9 @@ public class SubBuffer {
 
     /**
      * Sets the runNum
+     * 
+     * @param newRunNum
+     *            runNum to set
      */
     public void setRunNum(int newRunNum) {
         this.runNum = newRunNum;
@@ -212,50 +252,9 @@ public class SubBuffer {
 
 
     /**
-     * Checks if pos position in heap is a right child
-     * 
-     * @param pos
-     *            Position in heap
-     * @return true if pos is right child
-     */
-    private int rightchild(int pos) {
-        if (pos >= (pos - 1) / 2) {
-            return -1;
-        }
-        return 2 * pos + 2;
-    }
-
-
-    /**
-     * Returns position for parent
-     * 
-     * @param pos
-     *            Position in heap
-     * @return parent position of pos
-     */
-    private int parent(int pos) {
-        if (pos <= 0) {
-            return -1;
-        }
-        return (pos - 1) / 2;
-    }
-
-
-    /**
-     * Converts array to double
-     * 
-     * @param array
-     *            Array to convert to double
-     * @return array as double
-     */
-    private double convertToDouble(byte[] array) {
-        ByteBuffer buffer = ByteBuffer.wrap(array);
-        return buffer.getDouble();
-    }
-
-
-    /**
      * Returns toString of the root record
+     * 
+     * @return toString of the root record, aka smallest key record
      */
     public String toString() {
         return this.getRt().toString();

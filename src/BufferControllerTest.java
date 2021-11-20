@@ -37,10 +37,20 @@ public class BufferControllerTest extends student.TestCase {
 
     // Fields --------------------------------------------------------
     private BufferController bc;
+    /**
+     * Default bin file to be sorted
+     */
     private final String OUTPUT = "sampleInput16.bin";
+
+    /**
+     * Name of generated file, .bin is added on during generation
+     */
     private final String GENFILE = "Temp";
+
+    /**
+     * Name of run file generated during replacmeent selection
+     */
     private final String RUN1 = "JeffChenRunUno.bin";
-    // private final String SOFILE = "StandardOutputTemp.txt";
     private Validation valid;
 
     // Set Up --------------------------------------------------------
@@ -88,7 +98,7 @@ public class BufferControllerTest extends student.TestCase {
 
         ////////////////////////////////////////////////////////////////
         // Testing a double run file
-        Genfile_proj3.main(new String[] { GENFILE, Integer.toString(10) });
+        Genfile.main(new String[] { GENFILE, Integer.toString(10) });
 
         bc = new BufferController(GENFILE + "reversesorted.bin");
         bc.replacementSelection();
@@ -109,7 +119,7 @@ public class BufferControllerTest extends student.TestCase {
 
         ////////////////////////////////////////////////////////////////
         // Testing a 400 block reverse file
-        Genfile_proj3.main(new String[] { GENFILE, Integer.toString(400) });
+        Genfile.main(new String[] { GENFILE, Integer.toString(400) });
 
         bc = new BufferController(GENFILE + "reversesorted.bin");
         bc.replacementSelection();
@@ -175,7 +185,7 @@ public class BufferControllerTest extends student.TestCase {
      */
     private boolean sortAllCycle(int numBlocks) throws IOException {
         // Generating file, modify toString(x) to increase size
-        Genfile_proj3.main(new String[] { GENFILE, Integer.toString(
+        Genfile.main(new String[] { GENFILE, Integer.toString(
             numBlocks) });
 
         this.sortCycle(GENFILE + ".bin", GENFILE + "sorted.bin");
@@ -225,20 +235,6 @@ public class BufferControllerTest extends student.TestCase {
         this.deleteFile(new File(RUN1));
 
         return true;
-    }
-
-
-    /**
-     * Prints all record keys from a file
-     * 
-     * @param file
-     *            File to read record keys from
-     */
-
-    private void printRecords(String file)
-        throws FileNotFoundException,
-        IOException {
-        System.out.println(this.storeRecords(file));
     }
 
 
@@ -316,7 +312,7 @@ public class BufferControllerTest extends student.TestCase {
      */
     private boolean compareSingleRunRS(int size) throws IOException {
         // Testing a 4 block random file
-        Genfile_proj3.main(new String[] { GENFILE, Integer.toString(size) });
+        Genfile.main(new String[] { GENFILE, Integer.toString(size) });
 
         // Random
         bc = new BufferController(GENFILE + ".bin");

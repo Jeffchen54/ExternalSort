@@ -1,13 +1,7 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 import student.TestCase;
 
 // On my honor:
@@ -42,8 +36,6 @@ public class MainBufferTest extends TestCase {
     // Fields -------------------------------------------------------------
     private MainBuffer heap;
     private OutputBuffer output;
-    private File created;
-    private String testingOutput;
 
     // Setup -------------------------------------------------------------
     /**
@@ -177,7 +169,9 @@ public class MainBufferTest extends TestCase {
      */
     public void testInsertRemoveRunNum() throws IOException {
         File file = new File("ToDelete.bin");
-        file.createNewFile();
+        if (!file.createNewFile()) {
+            throw new IOException();
+        }
         output = new OutputBuffer(new RandomAccessFile("ToDelete.bin", "rw"));
 
         // Empty remove
@@ -197,7 +191,9 @@ public class MainBufferTest extends TestCase {
         heap.removeMin(output);
         assertEquals(51.0, output.getLastRecord().getKey(), 0.1);
         output.close();
-        file.delete();
+        if (!file.delete()) {
+            throw new IOException();
+        }
 
     }
 
@@ -240,7 +236,9 @@ public class MainBufferTest extends TestCase {
      */
     public void testRS() throws IOException {
         File file = new File("Temp.bin");
-        file.createNewFile();
+        if (!file.createNewFile()) {
+            throw new IOException();
+        }
         output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
 
         // Calling RS on empty heap
@@ -268,7 +266,10 @@ public class MainBufferTest extends TestCase {
         }
 
         inputFile.close();
-        file.delete();
+
+        if (!file.delete()) {
+            throw new IOException();
+        }
         file.createNewFile();
         output = new OutputBuffer(new RandomAccessFile("Temp.bin", "rw"));
 

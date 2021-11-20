@@ -1,3 +1,5 @@
+import student.TestCase;
+
 // On my honor:
 //
 // - I have not used source code obtained from another student,
@@ -16,49 +18,49 @@
 // may help me debug my program so long as neither of us writes
 // anything during the discussion or modifies any computer file
 // during the discussion. I have violated neither the spirit nor
-// letter of this restriction.
+// letter of this restriction. - JC
 
 // Java Doc ------------------------------------------------------------------
 /**
- * Object representing a record with a key and id
+ * Tests array wrapper
  * 
- * @author Ben Chen
- * @version 11.20.2021
+ * @author chenj (chenjeff4840)
+ * @version 11.1.2021
  */
-public class Pair {
-    private double key;
-    private long id;
+public class ArrayWrapperTest extends TestCase {
 
+    // Fields --------------------------------------------------
+    private ArrayWrapper<Integer> wrap;
+
+    // Setup --------------------------------------------------
     /**
-     * Constructs a pair according to parameters
-     * 
-     * @param newId
-     *            id of pair
-     * @param newKey
-     *            key of pair
+     * Creates an empty ArrayWrapper
      */
-    public Pair(long newId, double newKey) {
-        this.id = newId;
-        this.key = newKey;
+    public void setUp() {
+        wrap = new ArrayWrapper<Integer>();
     }
 
 
+    // Tests --------------------------------------------------
     /**
-     * Returns the id
-     * 
-     * @return id
+     * Tests all functions of the ArrayWrapper
      */
-    public long getId() {
-        return id;
+    public void testWrap() {
+        Integer[] data = new Integer[] { 1 };
+
+        wrap.setValue(0, 5);
+        assertNull(wrap.get());
+
+        wrap.wrap(data);
+        wrap.setValue(2, 1);
+        assertEquals(1, wrap.get().length);
+        assertEquals(1, wrap.get()[0], 0.1);
+
+        wrap.setValue(0, 2);
+        assertEquals(2, wrap.get()[0], 0.1);
+
+        wrap.clear();
+        assertNull(wrap.get());
     }
 
-
-    /**
-     * Returns the key
-     * 
-     * @return key
-     */
-    public double getKey() {
-        return key;
-    }
 }

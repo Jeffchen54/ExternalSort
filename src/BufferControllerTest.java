@@ -45,12 +45,18 @@ public class BufferControllerTest extends student.TestCase {
     private Validation valid;
 
     // Set Up --------------------------------------------------------
+    /**
+     * Sets up the buffer controller with a 16 block file
+     */
     public void setUp() throws IOException {
         bc = new BufferController(OUTPUT);
     }
 
 
     // Tests --------------------------------------------------------
+    /**
+     * Tests replacement selection
+     */
     public void testReplacementSelection()
         throws FileNotFoundException,
         IOException {
@@ -121,109 +127,105 @@ public class BufferControllerTest extends student.TestCase {
     }
 
 
-
-
-
-
+    /**
+     * Tests the merge sort process.
+     */
     public void testMerge() throws FileNotFoundException, IOException {
-        InputBuffer check = new InputBuffer(new RandomAccessFile(
-            "BenSample11BreverseSorted.bin", "r"));
-        while (!check.endOfFile()) {
-            for (int i = 0; i < 512; i++) {
-                //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
-                System.out.print(this.getKey(check) + " ");
-                check.next(16);
-            }
 
-            System.out.println("");
-            check.nextBlock();
+        // Testing 8 run file
+        assertTrue(this.sortAllCycle(64));
 
-        }
-        for (int i = 0; i < 512; i++) {
-            //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
-            System.out.print(this.getKey(check) + " ");
-            check.next(16);
-        }
-        
-        
-        
-        
-        System.out.print("\n");
-        System.out.println("----------------");
-        
-        
-        
-        
-        bc = new BufferController("BenSample11BreverseSorted.bin");
-        bc.replacementSelection();
+        // Testing 7 run file
+        assertTrue(this.sortAllCycle(56));
 
-        
-        
-        
-        InputBuffer rsReady = new InputBuffer(new RandomAccessFile(
-            "JeffChenRunUno.bin", "r"));
+        // Testing 4 run file
+        assertTrue(this.sortAllCycle(32));
 
-        //prev = this.getKey(input);
+        // Testing tiny run file
+        assertTrue(this.sortAllCycle(4));
 
+        // Testing 9 run file - uncomment when ready to test
+        // assertTrue(this.sortAllCycle(65));
 
-        while (!rsReady.endOfFile()) {
-            for (int i = 0; i < 512; i++) {
-                //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
-                System.out.print(this.getKey(rsReady) + " ");
-                rsReady.next(16);
-            }
-
-            System.out.println("");
-            rsReady.nextBlock();
-
-        }
-        for (int i = 0; i < 512; i++) {
-            //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
-            System.out.print(this.getKey(rsReady) + " ");
-            rsReady.next(16);
-        }
-        
-        
-        
-        
-        
-        
-        
-        RandomAccessFile from = new RandomAccessFile("JeffChenRunUno.bin", "r");
-        RandomAccessFile to = new RandomAccessFile("BenTemp.bin", "rw");
-        bc.merge(from, to, 0);
-         
-        System.out.print("\n");
-        System.out.println("----------------");
-
-
-        
-        InputBuffer input = new InputBuffer(new RandomAccessFile(
-            "BenTemp.bin", "r"));
-
-        //prev = this.getKey(input);
-
-
-        while (!input.endOfFile()) {
-            for (int i = 0; i < 512; i++) {
-                //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
-                System.out.print(this.getKey(input) + " ");
-                input.next(16);
-            }
-
-            System.out.println("");
-            input.nextBlock();
-
-        }
-        for (int i = 0; i < 512; i++) {
-            //assertTrue(prev.compareTo(this.getKey(input)) <= 0);
-            System.out.print(this.getKey(input) + " ");
-            input.next(16);
-        }
+        // Known webcat sizes
+        // assertTrue(this.sortAllCycle(200));
+        // assertTrue(this.sortAllCycle(24));
+        // assertTrue(this.sortAllCycle(32));
+        // assertTrue(this.sortAllCycle(400));
+        // assertTrue(this.sortAllCycle(48));
+        // assertTrue(this.sortAllCycle(8));
+        // assertTrue(this.sortAllCycle(340));
 
     }
 
 // Helpers --------------------------------------------------------
+
+
+    /**
+     * Performs replacement cycle and merge sort on a file of block size
+     * numBlocks. Sorts a sorted, unsorted, and reverseSorted file of
+     * the provided block size.
+     * 
+     * @param numBlocks
+     *            block size to test
+     * @return true if sorted and assert fails if not
+     * @throws IOException
+     * 
+     */
+    private boolean sortAllCycle(int numBlocks) throws IOException {
+        // Generating file, modify toString(x) to increase size
+        Genfile_proj3.main(new String[] { GENFILE, Integer.toString(
+            numBlocks) });
+
+        this.sortCycle(GENFILE + ".bin", GENFILE + "sorted.bin");
+        this.sortCycle(GENFILE + "reversesorted.bin", GENFILE + "sorted.bin");
+        this.copyFile(new File(GENFILE + "sorted.bin"), new File(GENFILE
+            + "copysorted.bin"));
+        this.sortCycle(GENFILE + "copysorted.bin", GENFILE + "sorted.bin");
+
+        this.deleteTemp();
+        return true;
+    }
+
+
+    /**
+     * Sorts a file with replacement selection and merge sort and verifies it
+     * Does not remove any files except files generated during sorting.
+     * 
+     * @param file
+     *            File to be sorted
+     * @param sortedFile
+     *            File with already sorted records
+     * @return true if sorted and verified correctly, assert fails if not.
+     */
+    private boolean sortCycle(String file, String sortedFile)
+        throws IOException {
+
+        // Performing replacement selection
+        bc = new BufferController(file);
+        bc.replacementSelection();
+
+        // Performing merge sort
+        RandomAccessFile from = new RandomAccessFile(RUN1, "r");
+        RandomAccessFile to = new RandomAccessFile(file, "rw");
+        bc.merge(from, to, 0);
+
+        // Finding results
+        InputBuffer input = new InputBuffer(new RandomAccessFile(file, "r"));
+
+        valid = new Validation(file, sortedFile);
+        assertTrue(valid.compare());
+
+        // Closing
+        from.close();
+        to.close();
+        bc.close();
+        input.close();
+        this.deleteFile(new File(RUN1));
+
+        return true;
+    }
+
 
     /**
      * Prints all record keys from a file
@@ -231,14 +233,13 @@ public class BufferControllerTest extends student.TestCase {
      * @param file
      *            File to read record keys from
      */
-/*
- * private void printRecords(String file)
- * throws FileNotFoundException,
- * IOException {
- * System.out.println(this.storeRecords(file));
- * }
- *
- */
+
+    private void printRecords(String file)
+        throws FileNotFoundException,
+        IOException {
+        System.out.println(this.storeRecords(file));
+    }
+
 
     /**
      * Saves all record keys from file into a String
@@ -248,43 +249,42 @@ public class BufferControllerTest extends student.TestCase {
      * @return string containing all record keys with white space inbetween
      *         and a "\n------\n" line between each block.
      */
-    /*
-     * private String storeRecords(String file)
-     * throws FileNotFoundException,
-     * IOException {
-     * StringBuilder build = new StringBuilder();
-     * InputBuffer input = new InputBuffer(new RandomAccessFile(file, "r"));
-     * 
-     * while (!input.endOfFile()) {
-     * for (int i = 0; i < 512; i++) {
-     * build.append(this.getKey(input) + " ");
-     * input.next(16);
-     * }
-     * build.append(
-     * "\n----------------------------------------------------"
-     * + "-------------------------------------------------"
-     * + "------------"
-     * + "--------------------------------------------------"
-     * + "----------"
-     * + "---------------------------------------------------"
-     * + "--------\n");
-     * input.nextBlock();
-     * }
-     * 
-     * // Covers last missed block
-     * for (int i = 0; i < 512; i++) {
-     * build.append(this.getKey(input) + " ");
-     * input.next(16);
-     * }
-     * build.append("\n----------------------------------------------------"
-     * + "-------------------------------------------------------------"
-     * + "------------------------------------------------------------"
-     * + "-----------------------------------------------------------\n");
-     * input.close();
-     * 
-     * return build.toString();
-     * }
-     */
+
+    private String storeRecords(String file)
+        throws FileNotFoundException,
+        IOException {
+        StringBuilder build = new StringBuilder();
+        InputBuffer input = new InputBuffer(new RandomAccessFile(file, "r"));
+
+        while (!input.endOfFile()) {
+            for (int i = 0; i < 512; i++) {
+                build.append(this.getKey(input) + " ");
+                input.next(16);
+            }
+            build.append(
+                "\n----------------------------------------------------"
+                    + "-------------------------------------------------"
+                    + "------------"
+                    + "--------------------------------------------------"
+                    + "----------"
+                    + "---------------------------------------------------"
+                    + "--------\n");
+            input.nextBlock();
+        }
+
+        // Covers last missed block
+        for (int i = 0; i < 512; i++) {
+            build.append(this.getKey(input) + " ");
+            input.next(16);
+        }
+        build.append("\n----------------------------------------------------"
+            + "-------------------------------------------------------------"
+            + "------------------------------------------------------------"
+            + "-----------------------------------------------------------\n");
+        input.close();
+
+        return build.toString();
+    }
 
     /**
      * Saves record keys into a file

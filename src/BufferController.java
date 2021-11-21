@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -83,12 +84,11 @@ public class BufferController {
      */
     public void replacementMerge() throws FileNotFoundException, IOException {
 
-        runfile2 = inputFileName;
-
         this.replacementSelection();
 
         this.mergeSort();
         this.close();
+        this.cleanUp();
     }
 
     // Helpers -----------------------------------------------------------
@@ -152,7 +152,8 @@ public class BufferController {
                 while (heap.heapSize() != 0) {
 
                     int id = heap.mergeOnce(output);
-                    long newBeginDest = runBeginDest.get()[id] += 8192;
+                    runBeginDest.get()[id] += 8192;
+                    long newBeginDest = runBeginDest.get()[id];
                     runBeginDest.setValue(id, newBeginDest);
 
                     // If run is not finished, insert another block from run
@@ -216,7 +217,7 @@ public class BufferController {
 
         outputBuff.close();
 
-        // clearFile(outputFileName);
+        clearFile(outputFileName);
 
         outputBuff.changeFile(new RandomAccessFile(outputFileName, "rw"));
         while (!input.endOfFile()) {
@@ -250,6 +251,25 @@ public class BufferController {
         output.close();
 
         // this.cleanUp();
+    }
+
+
+    /**
+     * Removes all temporary files
+     * 
+     * @throws IOException
+     */
+    private void cleanUp() throws IOException {
+        File temp = new File(runfile1);
+
+        if (temp.exists() && !temp.delete()) {
+            throw new IOException();
+        }
+        temp = new File(runfile2);
+
+        if (temp.exists() && !temp.delete()) {
+            throw new IOException();
+        }
     }
 
 
@@ -370,6 +390,9 @@ public class BufferController {
         runEndDest.wrap(runEnd);
         output.flush();
         blocks.close();
+
+        input.close();
+        output.close();
     }
 
 
@@ -392,79 +415,6 @@ public class BufferController {
      */
     public Long[] getRunEnd() {
         return runEndDest.get();
-    }
-
-
-    /**
-     * Builds a heap with up to 8 blocks starting with the current run
-     * 
-     * @param current
-     *            Which run we are on. Begins with 0 for run 1.
-     * @throws IOException
-     */
-    private int buildupMerge(int current) throws IOException {
-        int currRun = current;
-        while (heap.heapSize() < 8 && (runBeginDest.get().length > currRun
-            && runBeginDest.get()[currRun] != null)) {
-            input.seek(runBeginDest.get()[currRun]);
-            heap.insert(input.getData(), currRun);
-            currRun++;
-        }
-        return currRun;
-    }
-
-
-    /**
-     * Checks if all runs have been exhausted.
-     * 
-     * @param begin
-     *            Beginning position of the runs
-     * @param end
-     *            Ending position of the runs
-     * @return True if all runs have been exhausted, false otherwise.
-     */
-    private boolean allRunEmpty(Long[] begin, Long[] end) {
-        for (int i = 0; i < begin.length && begin[i] != null; i++) {
-            if (begin[i].compareTo(end[i]) != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    /**
-     * Copies the file within inputBuff into outputBuff.
-     * 
-     * @param inputBuff
-     *            InputBuffer whose file is to be copied over
-     * @param outputBuff
-     *            OutputBuffer whose file is to be copied to
-     * @throws FileNotFoundException
-     * @throws IOException
-     * 
-     */
-    private void printBlockRecords(String filename)
-        throws FileNotFoundException,
-        IOException {
-        input.changeFile(new RandomAccessFile(filename, "r"));
-        int counter = 0;
-
-        while (!input.endOfFile()) {
-
-            System.out.print(input.nextLong(8) + " ");
-            System.out.print(input.nextDouble(8) + " ");
-
-            input.nextBlock();
-            counter++;
-
-            if (counter % 5 == 0) {
-                System.out.print("\n");
-            }
-        }
-        System.out.print(input.nextLong(8) + " ");
-        System.out.print(input.nextDouble(8) + " \n");
-
     }
 
 

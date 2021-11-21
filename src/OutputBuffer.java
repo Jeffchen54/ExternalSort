@@ -124,4 +124,18 @@ public class OutputBuffer {
         cache = null;
     }
 
+
+    /**
+     * Sets data to src and wraps data.
+     * 
+     * @param src
+     *            Array to insert
+     * @return
+     */
+    public void insertBlock(byte[] src) {
+        data = src;
+        buffer = ByteBuffer.wrap(data);
+
+    }
+
 }

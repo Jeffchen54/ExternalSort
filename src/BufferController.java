@@ -1,5 +1,7 @@
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 
 // On my honor:
@@ -42,7 +44,7 @@ public class BufferController {
     private ArrayWrapper<Long> runBeginDest;
     private ArrayWrapper<Long> runEndDest;
     private String runfile1 = "JeffChenRunUno.bin";
-    // private String runfile2 = "JeffChenRunDos.bin";
+    private String runfile2 = "JeffChenRunDos.bin";
 
     // Constructor -----------------------------------------------------------
 
@@ -80,69 +82,174 @@ public class BufferController {
      * @throws FileNotFoundException
      */
     public void replacementMerge() throws FileNotFoundException, IOException {
+
+        runfile2 = inputFileName;
+
         this.replacementSelection();
 
+        this.mergeSort();
         this.close();
-        // this.mergeSort();
-        this.merge(new RandomAccessFile(runfile1, "rw"), new RandomAccessFile(
-            outputFileName, "rw"), 0);
-        this.close();
-        this.printBlockRecords(inputFileName);
-        this.close();
-
     }
 
     // Helpers -----------------------------------------------------------
 
 
     /**
-     * this the merge for at most 8 runs
+     * Performs 8-way merge. Saves the result to inputFile and creates temp
+     * files.
      * 
-     * @param runFrom
-     *            run file containing previous runs
-     * @param runInto
-     *            run file to put current runs into
-     * @param pass
-     *            What pass the merge is on, begins with 0
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    private void mergeSort() throws FileNotFoundException, IOException {
+
+        clearFile(runfile2);
+
+        // Required permanent variables
+        input.changeFile(new RandomAccessFile(runfile1, "r"));
+        output.changeFile(new RandomAccessFile(runfile2, "rw"));
+
+        // Check if runBeginDest or runEndDest are already sorted, if so no
+        // merge needs to be
+        // done and can copy into output
+        if (runEndDest.get().length < 2 || runEndDest.get()[1] == null) {
+            output.changeFile(new RandomAccessFile(outputFileName, "rw"));
+            this.printToFile(input, output);
+            output.close();
+            return;
+        }
+
+        // Each iteration means a new pass
+        for (int pass = 0; runBeginDest.get()[1] != null; pass++) {
+
+            // Initializing and reseting variables from pass to pass
+            Long[] newBegin = new Long[runBeginDest.get().length];
+            Long[] newEnd = new Long[runEndDest.get().length];
+            int runCount = 0;
+
+            // Cycles between 8 runs at a time
+            for (int i = 0; i < runBeginDest.get().length && runBeginDest
+                .get()[i] != null; i += 8) {
+
+                int processedBlocks = 0;
+
+                // Building beginning array
+                if (runCount == 0) {
+                    newBegin[0] = 0L;
+                }
+                else {
+                    newBegin[runCount] = newEnd[runCount - 1];
+                }
+
+                // Inserts 1-8 initial run elements into heap
+                for (int n = i; n < runBeginDest.get().length && runBeginDest
+                    .get()[n] != null && n - i != 8; n++) {
+                    input.seek(runBeginDest.get()[n]);
+                    heap.insert(input.getData(), n);
+                }
+
+                // Actual output, insert done here
+                while (heap.heapSize() != 0) {
+
+                    int id = heap.mergeOnce(output);
+                    long newBeginDest = runBeginDest.get()[id] += 8192;
+                    runBeginDest.setValue(id, newBeginDest);
+
+                    // If run is not finished, insert another block from run
+                    if (runBeginDest.get()[id] < runEndDest.get()[id]) {
+                        input.seek(runBeginDest.get()[id]);
+                        heap.insert(input.getData(), id);
+                    }
+
+                    // Output run block to file
+                    processedBlocks++;
+                }
+
+                // All runs done, computing runEnd
+                if (runCount == 0) {
+                    newEnd[0] = (long)(processedBlocks << 13);
+                }
+                else {
+                    newEnd[runCount] = newEnd[runCount - 1]
+                        + (long)(processedBlocks << 13);
+                }
+
+                // Incrementing run count since 1 run was just completed
+                runCount++;
+            }
+
+            // End of current pass, set arrays up and runfile for next pass
+            runBeginDest.wrap(newBegin);
+            runEndDest.wrap(newEnd);
+            output.flush();
+            output.close();
+
+            if ((pass & 0x1) != 1) {
+                output.changeFile(new RandomAccessFile(runfile1, "rw"));
+                input.changeFile(new RandomAccessFile(runfile2, "r"));
+            }
+            else {
+                output.changeFile(new RandomAccessFile(runfile2, "rw"));
+                input.changeFile(new RandomAccessFile(runfile1, "r"));
+            }
+        }
+
+        // At this point file should be sorted correctly, copies to output
+        this.printToFile(input, output);
+    }
+
+
+    /**
+     * Copies the file within inputBuff into outputBuff.
+     * 
+     * @param inputBuff
+     *            InputBuffer whose file is to be copied over
+     * @param outputBuff
+     *            OutputBuffer whose file is to be copied to
+     * @throws IOException
+     * 
+     */
+    private void printToFile(InputBuffer inputBuff, OutputBuffer outputBuff)
+        throws IOException {
+        input.rewind();
+        int counter = 0;
+
+        outputBuff.close();
+
+        // clearFile(outputFileName);
+
+        outputBuff.changeFile(new RandomAccessFile(outputFileName, "rw"));
+        while (!input.endOfFile()) {
+
+            System.out.print(input.nextLong(8) + " " + input.nextDouble(8)
+                + " ");
+            output.insertBlock(input.getData());
+            output.flush();
+            input.nextBlock();
+            counter++;
+
+            if (counter % 5 == 0) {
+                System.out.print("\n");
+            }
+        }
+        // Last block not caught in loop
+        System.out.println(input.nextLong(8) + " " + input.nextDouble(8) + " ");
+        output.insertBlock(input.getData());
+        output.flush();
+
+    }
+
+
+    /**
+     * Removes all temporary files and closes the file stream buffers
+     * 
      * @throws IOException
      */
-    public void merge(
-        RandomAccessFile runFrom,
-        RandomAccessFile runInto,
-        int pass)
-        throws IOException {
-        if (pass % 2 == 0) {
-            input.changeFile(runFrom);
-            output.changeFile(runInto);
-        }
-        else if (pass % 2 == 1) {
-            input.changeFile(runInto);
-            output.changeFile(runFrom);
-        }
-        int current = 0;
-        Long[] runBegin = runBeginDest.get();
-        Long[] runEnd = runEndDest.get(); // pay attention to the type since
-                                          // it's using runBegin.length
-        // to build up the heap first time
-        current = buildupMerge(current);
+    public void close() throws IOException {
+        input.close();
+        output.close();
 
-        // this while end when every run in the file sorted
-        while (!allRunEmpty(runBegin, runEnd)) {
-            // this while end when every eight run is sorted
-            while (heap.heapSize() != 0) {
-                int runNum = heap.mergeOnce(output);
-                runBegin[runNum] = runBegin[runNum] + 8192;
-
-                if (runBegin[runNum].compareTo(runEnd[runNum]) < 0) {
-                    input.seek(runBegin[runNum]);
-                    heap.insert(input.getData(), runNum);
-                }
-            }
-            current = buildupMerge(current);
-        }
-        output.flush();
-        runFrom.close();
-        runInto.close();
+        // this.cleanUp();
     }
 
 
@@ -263,19 +370,6 @@ public class BufferController {
         runEndDest.wrap(runEnd);
         output.flush();
         blocks.close();
-    }
-
-
-    /**
-     * Removes all temporary files and closes the file stream buffers
-     * 
-     * @throws IOException
-     */
-    public void close() throws IOException {
-        input.close();
-        output.close();
-
-        // this.cleanUp();
     }
 
 
@@ -403,5 +497,21 @@ public class BufferController {
 
         return maxRunCount;
 
+    }
+
+
+    /**
+     * Clears the contents of the selected file
+     * 
+     * @param filename
+     *            File to clear.
+     * @throws IOException
+     */
+    private static void clearFile(String filename) throws IOException {
+        FileWriter fwOb = new FileWriter(filename, false);
+        PrintWriter pwOb = new PrintWriter(fwOb, false);
+        pwOb.flush();
+        pwOb.close();
+        fwOb.close();
     }
 }

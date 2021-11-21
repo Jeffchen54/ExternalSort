@@ -159,13 +159,13 @@ public class BufferControllerTest extends student.TestCase {
         // assertTrue(this.sortAllCycle(65));
 
         // Known webcat sizes
-        // assertTrue(this.sortAllCycle(200));
-        // assertTrue(this.sortAllCycle(24));
-        // assertTrue(this.sortAllCycle(32));
-        // assertTrue(this.sortAllCycle(400));
-        // assertTrue(this.sortAllCycle(48));
-        // assertTrue(this.sortAllCycle(8));
-        // assertTrue(this.sortAllCycle(340));
+        assertTrue(this.sortAllCycle(200));
+        assertTrue(this.sortAllCycle(24));
+        assertTrue(this.sortAllCycle(32));
+        assertTrue(this.sortAllCycle(400));
+        assertTrue(this.sortAllCycle(48));
+        assertTrue(this.sortAllCycle(8));
+        assertTrue(this.sortAllCycle(340));
 
     }
 
@@ -213,12 +213,14 @@ public class BufferControllerTest extends student.TestCase {
 
         // Performing replacement selection
         bc = new BufferController(file);
-        bc.replacementSelection();
+        // bc.replacementSelection();
 
         // Performing merge sort
-        RandomAccessFile from = new RandomAccessFile(run1, "r");
+        RandomAccessFile from = new RandomAccessFile(run1, "rw");
         RandomAccessFile to = new RandomAccessFile(file, "rw");
-        bc.merge(from, to, 0);
+        // bc.merge(from, to, 0);
+        // bc.mergeAll(from, to);
+        bc.replacementMerge();
 
         // Finding results
         InputBuffer input = new InputBuffer(new RandomAccessFile(file, "r"));

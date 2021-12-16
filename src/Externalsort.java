@@ -1,14 +1,5 @@
-/**
- * {Project Description Here}
- */
-
-/**
- * The class containing the main method.
- *
- * @author {Your Name Here}
- * @version {Put Something Here}
- */
-
+import java.io.FileNotFoundException;
+import java.io.IOException;
 // On my honor:
 //
 // - I have not used source code obtained from another student,
@@ -29,14 +20,35 @@
 // during the discussion. I have violated neither the spirit nor
 // letter of this restriction.
 
+// Java Doc ------------------------------------------------------------------
+/**
+ * Main method
+ * 
+ * @author chenj (chenjeff4840)
+ * @version 11.14.2021
+ */
 public class Externalsort {
 
     /**
+     * Runs replacement selection and merge sort on args[0], saves result
+     * to args[0].
+     * 
      * @param args
-     *     Command line parameters
+     *            Command line parameters
+     * @throws IOException
+     * @throws FileNotFoundException
      */
-    public static void main(String[] args){
-
+    public static void main(String[] args)
+        throws FileNotFoundException,
+        IOException {
+        if (args.length == 0) {
+            System.out.println(
+                "Invocation: java Externalsort <records-filename>");
+        }
+        else {
+            BufferController buffers = new BufferController(args[0]);
+            buffers.replacementMerge();
+        }
     }
 
 }

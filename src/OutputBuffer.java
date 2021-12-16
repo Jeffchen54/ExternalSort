@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 // On my honor:
 //
@@ -28,14 +29,17 @@ import java.io.RandomAccessFile;
  * @author chenj (chenjeff4840)
  * @version 11.2.2021
  */
-public class OutputBuffer extends SubBuffer {
+public class OutputBuffer {
     // Fields ----------------------------------------------------------------
     private RandomAccessFile output;
+    private byte[] data;
+    private ByteBuffer buffer;
+    private Record cache;
 
     // Constructor --------------------------------------------------------
 
     /**
-     * Initializes buffer with no data. Sets the output file
+     * Initializes buffer with buffer size 8192 bytes.
      * 
      * @param output
      *            Output file
@@ -43,36 +47,27 @@ public class OutputBuffer extends SubBuffer {
      * @precondition output has write permissions
      */
     public OutputBuffer(RandomAccessFile output) {
-        super();
         this.output = output;
+        data = new byte[8192];
+        buffer = ByteBuffer.wrap(data);
+        cache = null;
     }
 
 
     /**
      * Returns shallow copy of data in buffer, writes this data to output file.
-     * Afterwards, sets flushed on.
+     * Resets buffer position to 0 which can be written to with new data.
      * 
-     * @return shallow copy of data, null if flushed
-     * @throws IOException
-     *             not needed for this function but needed for child
-     *             class.
+     * Will always flush 8192 bytes of data to the output file
+     * 
+     * @return shallow copy of data
      */
-    @Override
     public byte[] flush() throws IOException {
-        byte[] result = super.flush();
+        output.write(data);
+        buffer.rewind(); // This "clears" the array, favorable instead of
+                         // Setting arr contents to 0.
 
-        if (result != null) {
-            try {
-                output.write(result);
-            }
-            catch (IOException e) {
-                System.out.println(
-                    "ERROR: Output file is not writable\n\nStack Trace:\n");
-                e.printStackTrace();
-                throw e;
-            }
-        }
-        return result;
+        return data;
     }
 
 
@@ -84,18 +79,63 @@ public class OutputBuffer extends SubBuffer {
      * @throws IOException
      */
     public void changeFile(RandomAccessFile file) throws IOException {
-        output.close();
+        this.close();
         output = file;
     }
 
 
     /**
-     * Closes the output
+     * Inserts a record into the OutputBuffer, automatically flushed when the
+     * Buffer is full
+     * 
+     * @param record
+     *            Record to insert
+     * @throws IOException
+     */
+    public void insertRecord(Record record) throws IOException {
+
+        if (!buffer.hasRemaining()) {
+            this.flush();
+        }
+
+        cache = record;
+        buffer.put(record.getCompleteRecord());
+    }
+
+
+    /**
+     * Returns the last record inserted into the buffer
+     * 
+     * @return last record inserted into buffer, null if output file
+     *         is closed.
+     */
+    public Record getLastRecord() {
+        return cache;
+    }
+
+
+    /**
+     * Closes the output, cache is reset.
      * 
      * @throws IOException
      */
     public void close() throws IOException {
         output.close();
+        cache = null;
+    }
+
+
+    /**
+     * Sets data to src and wraps data.
+     * 
+     * @param src
+     *            Array to insert
+     * @return
+     */
+    public void insertBlock(byte[] src) {
+        data = src;
+        buffer = ByteBuffer.wrap(data);
+
     }
 
 }

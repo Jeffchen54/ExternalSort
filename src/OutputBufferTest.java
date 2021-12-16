@@ -1,7 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import org.junit.AfterClass;
+import java.nio.ByteBuffer;
 import student.TestCase;
 
 // On my honor:
@@ -33,9 +33,16 @@ import student.TestCase;
  */
 public class OutputBufferTest extends TestCase {
     // Fields ------------------------------------------------------------
-    private static OutputBuffer buffer;
-    private static InputBuffer input;
-    static File created;
+    private OutputBuffer buffer;
+
+    /**
+     * Name of a bin file to output to
+     */
+    private final String testing = "testing.bin";
+    /**
+     * Name of a bin file to output to
+     */
+    private final String testing2 = "testing2.bin";
 
     // SetUp ------------------------------------------------------------
     /**
@@ -44,11 +51,8 @@ public class OutputBufferTest extends TestCase {
      * @throws IOException
      */
     public void setUp() throws IOException {
-        created = new File("testing.bin");
-        created.delete();
-        created.createNewFile();
-        buffer = new OutputBuffer(new RandomAccessFile("testing.bin", "rw"));
-        input = new InputBuffer(new RandomAccessFile("sampleInput16.bin", "r"));
+        this.cleanUp();
+        buffer = new OutputBuffer(new RandomAccessFile(testing, "rw"));
     }
 
     // Tests ------------------------------------------------------------
@@ -60,48 +64,64 @@ public class OutputBufferTest extends TestCase {
      * @throws IOException
      */
     public void testFlush() throws IOException {
+        Record record = new Record(this.makeRecord(0, 0));
+
         // Inserting data into buffer then flushing
-        buffer.setData(input.getData());
-        assertNotNull(buffer.flush());
+        for (int i = 0; i < 512; i++) {
+            buffer.insertRecord(new Record(this.makeRecord(i, i + 1)));
 
-        // Trying to flush again
-        assertNull(buffer.flush());
+        }
+
+        // This element is inserted when buffer is full, flushes buffer
+        buffer.insertRecord(record);
+
+        // OutputBuffer should be flushed.
         buffer.close();
 
-        // Reading in data from output file
-        InputBuffer written = new InputBuffer(new RandomAccessFile(
-            "testing.bin", "r"));
-        assertTrue(written.endOfFile()); // at end if only 1 block written
-        written.close();
+        InputBuffer input = new InputBuffer(new RandomAccessFile(testing, "r"));
 
-        // Reading in 2 more blocks into same output file, overwriting contents
-        buffer = new OutputBuffer(new RandomAccessFile("testing.bin", "rw"));
+        for (int i = 0; i < 512; i++) {
+            assertEquals(i, input.nextLong(8));
+            assertEquals(i + 1, input.nextDouble(8), 0.1);
+        }
 
-        buffer.setData(input.getData());
-        input.next(8);
-        double key1 = input.nextDouble(8);
-        input.nextBlock();
-        buffer.flush();
-
-        buffer.setData(input.getData());
-        input.next(8);
-        double key2 = input.nextDouble(8);
-        input.nextBlock();
-        buffer.flush();
-
-        buffer.close();
-
-        // Now reading from written file
-        input.changeFile(new RandomAccessFile("testing.bin", "r"));
-
-        input.next(8);
-        assertEquals(key1, input.nextDouble(8), 0.1);
-        input.nextBlock();
-
-        input.next(8);
-        assertEquals(key2, input.nextDouble(8), 0.1);
         assertTrue(input.endOfFile());
         input.close();
+        this.cleanUp();
+
+        // Inserting 2 blocks of data into buffer.
+        buffer = new OutputBuffer(new RandomAccessFile(testing, "rw"));
+        for (int i = 0; i < 512; i++) {
+            buffer.insertRecord(new Record(this.makeRecord(i, i + 1)));
+
+        }
+        for (int i = 0; i < 512; i++) {
+            buffer.insertRecord(new Record(this.makeRecord(i, i + 1)));
+
+        }
+
+        // This element is inserted when buffer is full, flushes buffer
+        buffer.flush();
+
+        // OutputBuffer should be flushed.
+        buffer.close();
+
+        input = new InputBuffer(new RandomAccessFile(testing, "r"));
+
+        for (int i = 0; i < 512; i++) {
+            assertEquals(i, input.nextLong(8));
+            assertEquals(i + 1, input.nextDouble(8), 0.1);
+        }
+        input.nextBlock();
+
+        for (int i = 0; i < 512; i++) {
+            assertEquals(i, input.nextLong(8));
+            assertEquals(i + 1, input.nextDouble(8), 0.1);
+        }
+
+        assertTrue(input.endOfFile());
+        input.close();
+        this.cleanUp();
     }
 
 
@@ -114,10 +134,11 @@ public class OutputBufferTest extends TestCase {
     public void testChangeFile() throws IOException {
         // Read only changeFile
         IOException exception = null;
+        Record record = new Record(this.makeRecord(0, 0));
 
         try {
-            buffer.changeFile(new RandomAccessFile("testing.bin", "r"));
-            buffer.setData(input.getData());
+            buffer.changeFile(new RandomAccessFile(testing, "r"));
+            buffer.insertRecord(record);
             buffer.flush();
         }
         catch (IOException e) {
@@ -126,37 +147,46 @@ public class OutputBufferTest extends TestCase {
         assertNotNull(exception);
 
         // Writing to one file, changing to another
-        buffer.changeFile(new RandomAccessFile("testing.bin", "rw"));
-        buffer.setData(input.getData());
-        double key = buffer.getKey();
+        buffer.changeFile(new RandomAccessFile(testing, "rw"));
+        buffer.insertRecord(record);
         buffer.flush();
 
         // Changing
-        File other = new File("temp.bin");
-        other.delete();
-        other.createNewFile();
-        buffer.changeFile(new RandomAccessFile("temp.bin", "rw"));
+        buffer.changeFile(new RandomAccessFile(testing2, "rw"));
 
         // Putting different data in other file
-        input.nextBlock();
-        buffer.setData(input.getData());
-        double key2 = buffer.getKey();
+        record = new Record(this.makeRecord(1, 1));
+        buffer.insertRecord(record);
         buffer.flush();
+
         buffer.close();
 
         // Validation
-        input.changeFile(new RandomAccessFile("testing.bin", "rw"));
-        input.next(8);
-        assertEquals(key, input.nextDouble(8), 0.1);
-        assertTrue(input.endOfFile());
+        RandomAccessFile test1 = new RandomAccessFile(testing, "rw");
+        RandomAccessFile test2 = new RandomAccessFile(testing2, "rw");
 
-        input.changeFile(new RandomAccessFile("temp.bin", "rw"));
-        input.next(8);
-        assertEquals(key2, input.nextDouble(8), 0.1);
-        assertTrue(input.endOfFile());
+        byte[] data1 = new byte[8192];
+        byte[] data2 = new byte[8192];
 
-        input.close();
-        other.delete();
+        test1.read(data1);
+        test2.read(data2);
+
+        ByteBuffer b1 = ByteBuffer.wrap(data1);
+        ByteBuffer b2 = ByteBuffer.wrap(data2);
+
+        assertEquals(0, b1.getLong());
+        assertEquals(0, b1.getDouble(), 0.1);
+
+        assertEquals(1, b2.getLong());
+        assertEquals(1, b2.getDouble(), 0.1);
+
+        assertEquals(8192, test1.length());
+        assertEquals(8192, test2.length());
+
+        test1.close();
+        test2.close();
+        this.cleanUp();
+
     }
 
 
@@ -185,15 +215,72 @@ public class OutputBufferTest extends TestCase {
         }
         assertNull(exception);
     }
-    
+
+
     /**
      * Cleanup
-     * @throws IOException 
+     * 
+     * @throws IOException
      */
-    @AfterClass
-    public static void cleanUp() throws IOException {
-        created.delete();
+    private void cleanUp() throws IOException {
+        File file = new File(testing);
+
+        if (file.exists()) {
+            if (!file.delete()) {
+                throw new IOException();
+            }
+        }
+
+        file = new File(testing2);
+
+        if (file.exists()) {
+            if (!file.delete()) {
+                throw new IOException();
+            }
+        }
+        if (buffer != null) {
+            buffer.close();
+        }
+
+    }
+
+
+    /**
+     * Creates a block of size 8192 with first record first id at id and first
+     * key
+     * at key, additional records increment key and value by 1.
+     */
+    private byte[] makeRecord(long id, double key) {
+        ByteBuffer buff = ByteBuffer.allocate(16);
+        buff.putLong(id);
+        buff.putDouble(key);
+
+        return buff.array();
+    }
+
+
+    /**
+     * Tests getLastRecord()
+     * 
+     * @throws IOException
+     */
+    public void testGetLastRecord() throws IOException {
+        Record record = null;
+
+        // Inserting data into buffer then flushing
+        for (int i = 0; i < 512; i++) {
+            record = new Record(this.makeRecord(i, i + 1));
+            buffer.insertRecord(record);
+            assertEquals(0, buffer.getLastRecord().compareTo(record));
+
+        }
+
+        // This element is inserted when buffer is full, flushes buffer
+        buffer.flush();
+        assertEquals(0, buffer.getLastRecord().compareTo(record));
+
         buffer.close();
-        input.close();
+        this.cleanUp();
+
     }
 }

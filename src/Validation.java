@@ -1,25 +1,62 @@
-import java.io.BufferedOutputStream; 
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.Random;
+import java.nio.ByteBuffer;
 
+// On my honor:
+//
+// - I have not used source code obtained from another student,
+// or any other unauthorized source, either modified or
+// unmodified.
+//
+// - All source code and documentation used in my program is
+// either my original work, or was derived by me from the
+// source code published in the textbook for this course.
+//
+// - I have not discussed coding details about this project with
+// anyone other than my partner (in the case of a joint
+// submission), instructor, ACM/UPE tutors or the TAs assigned
+// to this course. I understand that I may discuss the concepts
+// of this program with other students, and that another student
+// may help me debug my program so long as neither of us writes
+// anything during the discussion or modifies any computer file
+// during the discussion. I have violated neither the spirit nor
+// letter of this restriction. - JC
+
+// Java Doc ------------------------------------------------------------------
+/**
+ * Validates if 2 bin files are exactly the same
+ * 
+ * @author Ben Chen
+ * @version 11.20.2021
+ */
 public class Validation {
 
-
     private double key; // the key of the error block
-    private int num ;    // trace number of block that got error
+    private int num; // trace number of block that got error
     private String ourFile;
     private String answerFile;
 
+    /**
+     * Constructs a validator with 2 files
+     * 
+     * @param ourFile
+     *            File to be compared
+     * @param answerFile
+     *            File to be compared
+     */
     public Validation(String ourFile, String answerFile) {
         num = 1;
         this.ourFile = ourFile;
         this.answerFile = answerFile;
     }
 
+
+    /**
+     * Compares the 2 files within the validation object. Reports findings
+     * to standard output and returns the result.
+     * 
+     * @return true if they are the same, false otherwise.
+     */
     public boolean compare() throws IOException {
         RandomAccessFile result = new RandomAccessFile(ourFile, "r");
         InputBuffer rBuffer = new InputBuffer(result);
@@ -27,107 +64,50 @@ public class Validation {
         RandomAccessFile validation = new RandomAccessFile(answerFile, "r");
         InputBuffer vBuffer = new InputBuffer(validation);
 
+        boolean same = false;
+
         if (equal(rBuffer, vBuffer)) {
             System.out.println("the output of your external sort is correct");
-            return true;
+            same = true;
         }
         else {
-            System.out.println("you have error at the " + num + "th block, the key is " + key);
-            return false;
+            System.out.println("you have error at the " + num
+                + "th block, the key is " + key);
         }
+
+        rBuffer.close();
+        vBuffer.close();
+        return same;
     }
 
-    public boolean equal(InputBuffer rBuffer, InputBuffer vBuffer) throws IOException {
-        SubBuffer rsBuffer = new SubBuffer();
-        SubBuffer vsBuffer = new SubBuffer();
-        rBuffer.rewind();
-        vBuffer.rewind();
-        
-        
+
+    /**
+     * Checks if the files within the InputBuffers in the parameter contain
+     * the same data
+     * 
+     * @param rBuffer
+     *            contains file to be compared
+     * @param vBuffer
+     *            contains file to be compared
+     * @return true if files are equal, false otherwise.
+     */
+    public boolean equal(InputBuffer rBuffer, InputBuffer vBuffer)
+        throws IOException {
         while (!rBuffer.endOfFile() && !vBuffer.endOfFile()) {
-            rsBuffer.setData(rBuffer.getData());
-            vsBuffer.setData(vBuffer.getData()); 
-            System.out.println(rsBuffer.getKey());
-            System.out.println(vsBuffer.getKey());
-            
-            if (rsBuffer.compareTo(vsBuffer) != 0){
-                key = rBuffer.nextDouble(8);  // this is not working
-                return false;
+            ByteBuffer myRecord = ByteBuffer.wrap(rBuffer.getData());
+            ByteBuffer valRecord = ByteBuffer.wrap(vBuffer.getData());
+            for (int j = 0; j < 512; j++) {
+                myRecord.getLong();
+                double myDouble = myRecord.getDouble();
+                valRecord.getLong();
+                double valDouble = valRecord.getDouble();
+                if (myDouble != valDouble) {
+                    return false;
+                }
             }
             rBuffer.nextBlock();
             vBuffer.nextBlock();
-            num += 1;
         }
         return true;
     }
-    
-///////////////////////////////////////////////////////
-////// helper method for test case/////////////////////
-///////////////////////////////////////////////////////
-    
-    static private Random value = new Random();
-
-    static long randLong() {
-        return value.nextLong();
-    }
-
-    static double randDouble() {
-        return value.nextDouble();
-    }
-    
-    
-    public void genFile(int size, int errorHappen, String resultFileName, 
-        String validationFileName) throws IOException {
-        
-        long ID;
-        double key;
-
-        DataOutputStream file = new DataOutputStream(
-            new BufferedOutputStream(new FileOutputStream("testFile1")));
-        DataOutputStream vfile = new DataOutputStream(
-            new BufferedOutputStream(new FileOutputStream("valTestFile1")));    
-        ArrayList<Pair> list = new ArrayList<Pair>();
-        System.out.println("------------this is our testFile--------------");
-        for (int i=0; i < size; i++) {
-            for (int j=0; j<512; j++) {
-                ID = (long)(randLong());
-                file.writeLong(ID);
-                key = (double)(randDouble());
-                file.writeDouble(key);
-                if (i == errorHappen) {
-                    list.add(new Pair(ID, 0.123456789));
-                }
-                else {
-                    list.add(new Pair(ID, key));
-                }
-                // print out the first key of each block
-                if(j == 0) {
-                    System.out.println(key);
-                }
-            }
-        }
-        file.flush();
-        file.close();
-        
-     // print out first item of each block
-        System.out.println("------------this is validation testFile--------------");
-        for (int i = 0; i < list.size(); i+=512) {
-            System.out.println(list.get(i).getKey());
-        }
-
-        // write the sorted data back to each file
-        for (int i=0; i< list.size(); i++) {
-            vfile.writeLong(list.get(i).getId());
-            vfile.writeDouble(list.get(i).getKey());
-
-//            // print out the whole sorted data
-//            if (i%512 == 0) {
-//                System.out.println("-----------------this is the first item--------------------");
-//            }
-//            System.out.println(list.get(i).getId() + "   " + list.get(i).getKey());
-        }
-        vfile.flush();
-        vfile.close();
-    }
-
 }

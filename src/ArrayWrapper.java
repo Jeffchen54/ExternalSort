@@ -74,7 +74,7 @@ public class ArrayWrapper<T> {
      *            data to insert into value
      */
     public void setValue(int pos, T data) {
-        if (arr == null || arr.length >= pos) {
+        if (arr == null || arr.length < pos) {
             return;
         }
 

@@ -1,7 +1,6 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import org.junit.Test;
 import student.TestCase;
 
 // On my honor:
@@ -40,7 +39,6 @@ public class InputBufferTest extends TestCase {
     /**
      * Creates buffer with size 8192 bytes and Canvas provided input file
      */
-    @Test
     public void setUp() throws IOException {
         RandomAccessFile file = new RandomAccessFile("sampleInput16.bin", "r");
         buffer = new InputBuffer(file);
@@ -112,35 +110,6 @@ public class InputBufferTest extends TestCase {
 
 
     /**
-     * Playing with a tiny bin with total bytes < 8192
-     * 
-     * @throws IOException
-     * @throws FileNotFoundException
-     */
-    public void testTiny() throws FileNotFoundException, IOException {
-        // Initializing ---------------------------------------------------
-        InputBuffer buff = new InputBuffer(new RandomAccessFile("tiny.bin",
-            "r"));
-
-        // Taking byte[] info
-        byte[] data = buff.getData();
-
-        // Test confirms byte[] start with an array of 0s (NULL in ASCII).
-        // Reusing an old array to be filled with a not full block leaves old
-        // data from the previous block in the reused array. This can be
-        // remedied
-        // with a clearing function; however, that is beyond the scope of this
-        // project since all blocks will always be 8192 byte size.
-        assertEquals(0, data[304]);
-        assertFalse(0 == data[303]);
-
-        buffer.changeFile(new RandomAccessFile("tiny.bin", "r"));
-        assertEquals(data[303], buffer.getData()[303]);
-        assertFalse(0 == buffer.getData()[304]);
-    }
-
-
-    /**
      * Moves the buffer to the beginning of the next block in the file where a
      * block is of size data.length
      * 
@@ -187,6 +156,7 @@ public class InputBufferTest extends TestCase {
         buffer.nextBlock();
         assertEquals(2465224465483701295L, buffer.nextLong(8));
         assertEquals(1.979063847945134E-200, buffer.nextDouble(8), 0.1);
+
     }
 
 
@@ -255,8 +225,6 @@ public class InputBufferTest extends TestCase {
     /**
      * Changes this.file to file
      * 
-     * @param file
-     *            File to change to
      * @throws IOException
      * @throws FileNotFoundException
      */
@@ -265,7 +233,7 @@ public class InputBufferTest extends TestCase {
         double a = buffer.nextLong(8);
 
         // Switching the file
-        buffer.changeFile(new RandomAccessFile("64Blocks_Barnette.bin", "r"));
+        buffer.changeFile(new RandomAccessFile("Temp1B.bin", "r"));
 
         // Saving the first 8 bytes of this other file
         double b = buffer.nextLong(8);
@@ -276,7 +244,7 @@ public class InputBufferTest extends TestCase {
         assertEquals(b, b2, 0.1);
 
         // Checking if a different file was indeed selected
-        assertFalse(a == b);
+        assertNotSame(a, b);
 
     }
 
@@ -286,18 +254,18 @@ public class InputBufferTest extends TestCase {
      */
     public void testRewind() {
         // Saving initial value
-        long original = buffer.nextLong(8);
+        Long original = buffer.nextLong(8);
 
         // Jumping 4000 bytes in buffer and saving value as long
         buffer.next(4000);
-        long jump = buffer.nextLong(8);
+        Long jump = buffer.nextLong(8);
 
         // Rewinding and verifying
         buffer.rewind();
-        long rewind = buffer.nextLong(8);
+        Long rewind = buffer.nextLong(8);
 
-        assertEquals(original, rewind);
-        assertFalse(jump == rewind);
+        assertTrue(original.equals(rewind));
+        assertFalse(jump.equals(rewind));
     }
 
 
@@ -306,25 +274,26 @@ public class InputBufferTest extends TestCase {
      */
     public void testResetMark() {
         // Saving initial values
-        long begin = buffer.nextLong(8);
+        Long begin = buffer.nextLong(8);
         buffer.mark();
-        long original = buffer.nextLong(8);
+        Long original = buffer.nextLong(8);
 
         // Jumping 4000 bytes in buffer and saving value as long
         buffer.next(4000);
-        long jump = buffer.nextLong(8);
+        Long jump = buffer.nextLong(8);
 
         // Resetting and verifying
         buffer.reset();
-        long reset = buffer.nextLong(8);
+        Long reset = buffer.nextLong(8);
 
-        assertEquals(original, reset);
-        assertFalse(jump == reset);
+        assertTrue(original.equals(reset));
+        assertFalse(jump.equals(reset));
 
         // Rewinding and making sure mark is gone
         buffer.rewind();
-        assertEquals(begin, buffer.nextLong(8));
-        assertFalse(begin == reset);
+        Long next = buffer.nextLong(8);
+        assertTrue(begin.equals(next));
+        assertFalse(begin.equals(reset));
     }
 
 
@@ -392,5 +361,15 @@ public class InputBufferTest extends TestCase {
             exception = e;
         }
         assertNull(exception);
+    }
+
+
+    /**
+     * Tests getFile()
+     * 
+     * @throws IOException
+     */
+    public void testGetFile() throws IOException {
+        assertEquals(131072, buffer.getFile().length(), 0.1);
     }
 }
